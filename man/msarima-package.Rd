@@ -2,14 +2,23 @@
 % Please edit documentation in R/msarima-package.R
 \docType{package}
 \name{msarima-package}
-\alias{msarima}
 \alias{msarima-package}
-\title{msarima: What the Package Does (One Line, Title Case)}
+\title{msarima: Multi-Seasonal ARIMA Model}
 \description{
 What the package does (one paragraph).
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com}
+\strong{Maintainer}: Daniele Girolimetto \email{daniele.girolimetto@unipd.it} (\href{https://orcid.org/0000-0001-9387-1232}{ORCID})
+
+Authors:
+\itemize{
+  \item Tommaso Di Fonzo (\href{https://orcid.org/0000-0003-3388-7827}{ORCID})
+}
+
+Other contributors:
+\itemize{
+  \item Yangzhuoran Fin Fin Yang [contributor]
+}
 
 }
 \keyword{package}
