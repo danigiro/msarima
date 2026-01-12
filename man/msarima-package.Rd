@@ -5,20 +5,18 @@
 \alias{msarima-package}
 \title{msarima: Multi-Seasonal ARIMA Model}
 \description{
-What the package does (one paragraph).
+Provides tools for fitting and analyzing ARIMA models with multiple seasonal components. Extends the standard ARIMA framework to handle time series with up to two seasonal patterns, such as daily and weekly seasonality in hourly data. The package implements maximum likelihood estimation using numerical optimization and provides standard methods for model diagnostics, inference and forecasts.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/danigiro/msarima}
+  \item Report bugs at \url{https://github.com/danigiro/msarima/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Daniele Girolimetto \email{daniele.girolimetto@unipd.it} (\href{https://orcid.org/0000-0001-9387-1232}{ORCID})
-
-Authors:
-\itemize{
-  \item Tommaso Di Fonzo (\href{https://orcid.org/0000-0003-3388-7827}{ORCID})
-}
-
-Other contributors:
-\itemize{
-  \item Yangzhuoran Fin Fin Yang [contributor]
-}
 
 }
 \keyword{package}

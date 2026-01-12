@@ -6,13 +6,28 @@ Authors@R:
              family = "Girolimetto",
              role = c("aut", "cre"),
              email = "daniele.girolimetto@unipd.it",
-             comment = c(ORCID = "0000-0001-9387-1232")))
-Description: What the package does (one paragraph).
+             comment = c(ORCID = "0000-0001-9387-1232")),
+      person(given = "Francesco",
+             family = "Lisi",
+             role = c("aut"),
+             email = "francesco.lisi@unipd.it",
+             comment = c(ORCID = "0000-0002-8749-8889")),
+      person(given = "Matteo",
+             family = "Grigoletto",
+             role = c("aut")))
+Description: Provides functions for fitting, forecasting, and simulating ARIMA 
+    models with multiple seasonal components. Extends the standard ARIMA 
+    framework to handle time series with multiple seasonal patterns, such as 
+    daily and weekly seasonality. The package implements maximum likelihood 
+    estimation via numerical optimization and supports model diagnostics, 
+    forecasting with prediction intervals, and simulation from fitted models.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-Depends: R (>= 3.4)
+Depends: R (>= 3.4), forecast
 Imports: 
     polynom,
     stats
+URL: https://github.com/danigiro/msarima
+BugReports: https://github.com/danigiro/msarima/issues

@@ -2,78 +2,59 @@
 % Please edit documentation in R/msarima.R
 \name{msarima}
 \alias{msarima}
-\alias{print.msarima}
-\alias{summary.msarima}
-\alias{print.summary.msarima}
-\alias{coef.msarima}
-\alias{fitted.msarima}
-\alias{residuals.msarima}
-\alias{logLik.msarima}
-\alias{AIC.msarima}
-\alias{BIC.msarima}
 \title{Fit Multi-Seasonal ARIMA Model}
 \usage{
 msarima(
   y,
   order = c(0, 0, 0),
-  seasonal = list(order = c(0, 0, 0), period = NA),
-  seasonal2 = list(order = c(0, 0, 0), period = NA),
+  seasonal = list(c(0, 0, 0), c(0, 0, 0)),
+  seasonal.period = NULL,
+  fixed = NULL,
   optim_control = list(maxit = 200)
 )
-
-\method{print}{msarima}(x, ...)
-
-\method{summary}{msarima}(object, ...)
-
-\method{print}{summary.msarima}(x, digits = 4, signif.stars = TRUE, ...)
-
-\method{coef}{msarima}(object, ...)
-
-\method{fitted}{msarima}(object, ...)
-
-\method{residuals}{msarima}(object, ...)
-
-\method{logLik}{msarima}(object, ...)
-
-\method{AIC}{msarima}(object, ...)
-
-\method{BIC}{msarima}(object, ...)
 }
 \arguments{
-\item{y}{A numeric vector or time series object containing the data to be modeled.}
+\item{y}{A numeric vector or time series object (ts or msts) containing the data to
+be modeled. If a ts object is provided and \code{seasonal.period} is not specified,
+the frequency from the ts object will be used as the first seasonal period. If an
+msts object is provided, its multiple seasonal periods will be used automatically.}
 
 \item{order}{A numeric vector of length 3 specifying the non-seasonal part of the
 ARIMA model: the AR order (p), the degree of differencing (d), and the MA order (q).
 Default is \code{c(0, 0, 0)}.}
 
-\item{seasonal}{A list with components \code{order} and \code{period} specifying
-the first seasonal part of the model: \code{order} is a numeric vector of length 3
-giving the seasonal AR order (P), seasonal differencing order (D), and seasonal MA
-order (Q); \code{period} is the seasonal period.}
+\item{seasonal}{A list of numeric vectors, each of length 3, specifying the seasonal
+components. Each vector gives the seasonal AR order (P), seasonal differencing order (D),
+and seasonal MA order (Q) for that seasonal component. For example,
+\code{list(c(1, 0, 1), c(0, 1, 1))} specifies two seasonal components.
+The list must contain at least one seasonal component.
+Default is \code{list(c(0, 0, 0), c(0, 0, 0))}.}
 
-\item{seasonal2}{A list with components \code{order} and \code{period} specifying
-the second seasonal part of the model: same structure as \code{seasonal}.}
+\item{seasonal.period}{A numeric vector specifying the seasonal periods corresponding
+to each element in \code{seasonal}. For example, \code{c(7, 30)} for weekly and
+monthly seasonality. If not provided and \code{y} is a ts object with frequency > 1,
+the frequency will be used as the first seasonal period. If \code{y} is an msts object,
+its seasonal periods will be used automatically. Default is \code{NULL}.}
+
+\item{fixed}{A numeric vector of the same length as the total number of parameters
+(including sigma). If supplied, only \code{NA} entries in \code{fixed} will be varied.
+The order of parameters is: non-seasonal AR, seasonal AR (for each seasonal component),
+non-seasonal MA, seasonal MA (for each seasonal component), sigma. Use \code{fixed = NULL}
+to estimate all parameters, or provide a vector with \code{NA} for
+parameters to estimate and numeric values for parameters to fix. Default is \code{NULL}
+(all parameters estimated).}
 
 \item{optim_control}{A list of control parameters passed to \code{\link[stats]{optim}}.
 Default is \code{list(maxit = 200)}.}
-
-\item{x}{An object of class \code{"msarima"}.}
-
-\item{...}{Additional arguments (currently not used).}
-
-\item{object}{An object of class \code{"msarima"}.}
-
-\item{digits}{Number of digits to display. Default is 4.}
-
-\item{signif.stars}{Logical; if \code{TRUE}, significance stars are printed. Default is \code{TRUE}.}
 }
 \value{
 An object of class \code{"msarima"}, which is a list containing:
 \item{order}{The non-seasonal ARIMA order (p, d, q).}
-\item{seasonal}{List containing the first seasonal component specification.}
-\item{seasonal2}{List containing the second seasonal component specification.}
+\item{seasonal}{List of seasonal component specifications.}
+\item{seasonal.period}{Vector of seasonal periods.}
 \item{coef}{Named vector of estimated coefficients (AR, SAR, MA, SMA parameters).}
-\item{var.coef}{Variance-covariance matrix of the coefficient estimates.}
+\item{var_coef}{Variance-covariance matrix of the coefficient estimates.}
+\item{mask}{Logical vector indicating which parameters were fixed.}
 \item{loglik}{Log-likelihood of the fitted model.}
 \item{aic}{Akaike Information Criterion.}
 \item{bic}{Bayesian Information Criterion.}
@@ -82,36 +63,20 @@ An object of class \code{"msarima"}, which is a list containing:
 \item{x}{The original time series.}
 \item{fitted}{Fitted values.}
 \item{residuals}{Model residuals.}
+\item{method}{Description of the fitted model.}
 \item{series}{Name of the series.}
-\item{method}{Estimation method used.}
 \item{nobs}{Number of observations in the original series.}
 \item{n.used}{Number of observations used in estimation (after differencing).}
 \item{call}{The matched call.}
 \item{convergence}{Convergence code from \code{optim} (0 indicates successful convergence).}
 }
 \description{
-Fits an ARIMA model with up to two seasonal components to a univariate time series.
+Fits an ARIMA model with one or more seasonal components to a univariate time series.
 This function extends the standard ARIMA framework to handle time series with
 multiple seasonal patterns, such as daily and weekly seasonality in hourly data,
 or weekly and yearly seasonality in daily data.
 }
 \details{
-The function fits a multi-seasonal ARIMA model of the form:
-
-\deqn{\Phi_p(B)\Phi_{P1}(B^{s1})\Phi_{P2}(B^{s2})(1-B)^d(1-B^{s1})^{D1}(1-B^{s2})^{D2}y_t = \Theta_q(B)\Theta_{Q1}(B^{s1})\Theta_{Q2}(B^{s2})\epsilon_t}
-
-where:
-\itemize{
-\item \eqn{\Phi_p(B)} is the non-seasonal AR polynomial of order p
-\item \eqn{\Phi_{P1}(B^{s1})} is the first seasonal AR polynomial of order P1 with period s1
-\item \eqn{\Phi_{P2}(B^{s2})} is the second seasonal AR polynomial of order P2 with period s2
-\item \eqn{\Theta_q(B)} is the non-seasonal MA polynomial of order q
-\item \eqn{\Theta_{Q1}(B^{s1})} is the first seasonal MA polynomial of order Q1
-\item \eqn{\Theta_{Q2}(B^{s2})} is the second seasonal MA polynomial of order Q2
-\item d, D1, D2 are the differencing orders (must be 0 or 1)
-\item \eqn{\epsilon_t} is white noise with variance \eqn{\sigma^2}
-}
-
 The model is estimated using maximum likelihood via numerical optimization with
 \code{\link[stats]{optim}} using the BFGS algorithm.
 
@@ -122,42 +87,41 @@ errors are set to \code{NA}.
 \note{
 \itemize{
 \item The series must have at least 10 observations.
+\item The \code{seasonal} list must contain at least one seasonal component (it cannot be empty).
 \item Seasonal periods must be at least 2 and less than half the series length.
-\item Differencing orders (d, D1, D2) are restricted to 0 or 1.
+\item Differencing orders (d, D for each seasonal component) are restricted to 0 or 1.
 \item The function may take longer to converge for complex models with many parameters.
-\item For very long series or high-order models, consider using smaller \code{optim.control$maxit}.
+\item If input is ts or msts, the output x, fitted, and residuals preserve the same structure.
+\item If input is numeric and seasonal periods are specified, output is msts.
 }
 }
 \examples{
-# Simulate data with two seasonal patterns
+# Example 1: ARIMA with two seasonal components
 set.seed(123)
-n <- 500
-t <- 1:n
-y <- 10 + 0.05*t + 3*sin(2*pi*t/7) + 2*sin(2*pi*t/30) + rnorm(n, sd=0.5)
+y <- msarima.sim(nsim = 200,
+                 order = c(1, 0, 0),
+                 seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+                 seasonal.period = c(4, 11),
+                 ar = c(0.5, 0.5), ma = 0.3, sigma2 = 1)
 
-# Fit ARIMA(1,0,1) with weekly seasonality (period=7)
-fit1 <- msarima(y,
-                order = c(1, 0, 1),
-                seasonal = list(order = c(1, 0, 1), period = 7))
-print(fit1)
-summary(fit1)
+fit <- msarima(y, order = c(1, 0, 0),
+               seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+               seasonal.period = c(4, 11))
+print(fit)
+summary(fit)
 
-# Fit model with two seasonal components
-fit2 <- msarima(y,
-                order = c(1, 1, 1),
-                seasonal = list(order = c(1, 0, 1), period = 7),
-                seasonal2 = list(order = c(0, 1, 1), period = 30))
-print(fit2)
+# Example 2: Using msts object (multiple periods detected automatically)
+y_msts <- msts(y, seasonal.periods = c(4, 11))
+fit_msts <- msarima(y_msts, order = c(1, 0, 0),
+                    seasonal = list(c(1, 0, 0), c(0, 0, 1)))
+# Both periods (4 and 11) are used automatically
 
-# Extract components
-coef(fit2)
-fitted(fit2)
-residuals(fit2)
-AIC(fit2)
-BIC(fit2)
-
-# Plot residuals
-plot(residuals(fit2), type = "l", main = "Residuals")
-acf(residuals(fit2), main = "ACF of Residuals")
+# Example 4: Fixing parameters
+# Note: fixed vector length must match total parameters (AR + SAR + MA + SMA + sigma)
+fit_fixed <- msarima(y, order = c(1, 0, 0),
+                     seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+                     seasonal.period = c(4, 11),
+                     fixed = c(0.5, NA, NA, NA))
+AIC(fit); AIC(fit_fixed)
 
 }
