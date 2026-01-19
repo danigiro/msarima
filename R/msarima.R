@@ -31,6 +31,9 @@
 #'   to estimate all parameters, or provide a vector with \code{NA} for
 #'   parameters to estimate and numeric values for parameters to fix. Default is \code{NULL}
 #'   (all parameters estimated).
+#' @param include.constant Should the ARIMA model include a costant term? The
+#'   default is `TRUE` for undifferenced series, `FALSE` for differenced ones
+#'   (where a mean would not affect the fit nor predictions).
 #' @param optim_control A list of control parameters passed to \code{\link[stats]{optim}}.
 #'   Default is \code{list(maxit = 200)}.
 #'
@@ -111,6 +114,7 @@ msarima <- function(
   seasonal = list(c(0, 0, 0), c(0, 0, 0)),
   seasonal.period = NULL,
   fixed = NULL,
+  include.constant = FALSE,
   optim_control = list(maxit = 200)
 ) {
   # Input validation
@@ -173,6 +177,11 @@ msarima <- function(
   order_mat <- do.call(rbind, c(list(order), seasonal_orders))
   S_vec <- seasonal.period
 
+  if (any(order_mat[, 2] > 0) && include.constant) {
+    warning("No constant term fitted as the order of difference is 1 or more.")
+    include.constant <- FALSE
+  }
+
   # Validate seasonal periods
   for (s in 1:n_seasonal) {
     if (!is.na(S_vec[s]) && (S_vec[s] < 2 || S_vec[s] > n / 2)) {
@@ -189,8 +198,8 @@ msarima <- function(
   nstar <- length(xx)
 
   # Total number of parameters (including sigma)
-  n_params_total <- sum(order_mat[, c(1, 3)]) + 1 # +1 for sigma
-  n_params <- n_params_total - 1 # AR and MA parameters only
+  n_params <- sum(order_mat[, c(1, 3)]) # AR and MA parameters only
+  n_params_total <- n_params + 1 + include.constant # +1 for sigma, +1 mu
 
   # Handle fixed parameters
   if (!is.null(fixed)) {
@@ -225,7 +234,13 @@ msarima <- function(
     }
 
     # Extract sigma (last element)
-    sigma <- beta[n_params_total]
+    sigma <- beta[n_params_total - include.constant]
+
+    if (include.constant) {
+      mu <- beta[n_params_total]
+    } else {
+      mu <- 0
+    }
 
     if (sum(order_mat[, 1]) != 0) {
       ar_comp <- rep(c(1, seasonal.period), order_mat[, 1])
@@ -302,6 +317,7 @@ msarima <- function(
     # Residual calculation
     for (j in (kk + 1):nxxl) {
       epsl[j] <- xxl[j] -
+        mu -
         (sum(para_ar * xxl[(j - 1):(j - k_ar)]) +
           sum(para_ma * epsl[(j - 1):(j - k_ma)]))
     }
@@ -329,6 +345,10 @@ msarima <- function(
   beta_ini <- as.vector(beta_ini)
   beta_ini <- beta_ini[!is.na(beta_ini)]
   beta_ini_full <- c(beta_ini, sd(xx))
+
+  if (include.constant) {
+    beta_ini_full <- c(beta_ini_full, mean(xx))
+  }
 
   # Use fixed values where specified
   if (any(mask)) {
@@ -374,12 +394,13 @@ msarima <- function(
   LLO <- loglik(beta_full)
 
   # Extract estimated parameters
-  sigma2_hat <- beta_full[n_params_total]^2
-  beta_hat <- beta_full
-  beta_hat[n_params_total] <- sigma2_hat
+  sigma2_hat <- beta_full[n_params_total - include.constant]^2
+  if (include.constant) {
+    mu_hat <- beta_full[n_params_total]
+  }
 
   # Coefficients (AR and MA parameters only, exclude sigma)
-  Coef <- beta_hat[1:n_params]
+  Coef <- beta_full[include.constant - n_params_total]
 
   # Calculate variance-covariance matrix
   if (all_fixed) {
@@ -410,11 +431,10 @@ msarima <- function(
       var_coef <- matrix(NA, nrow = n_params, ncol = n_params)
     }
   } else {
-    if (sigma_fixed) {
-      fit$hessian <- fit$hessian[1:n_params, 1:n_params]
-    } else {
-      fit$hessian <- fit$hessian[1:n_params, 1:n_params]
-    }
+    fit$hessian <- fit$hessian[
+      include.constant - n_params_total,
+      include.constant - n_params_total
+    ]
 
     if (any(is.na(fit$hessian)) || det(-fit$hessian) <= 0) {
       warning("Hessian is singular. Standard errors may be unreliable.")
@@ -466,6 +486,10 @@ msarima <- function(
   })
   ma_name <- ma_name[!is.na(ma_name)]
   coef_names <- c(ar_name, ma_name)
+
+  if (include.constant) {
+    coef_names <- c(coef_names, "intercept")
+  }
 
   resid <- LLO$residuals
   fits <- xx - LLO$residuals

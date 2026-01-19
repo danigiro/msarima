@@ -10,6 +10,7 @@ msarima(
   seasonal = list(c(0, 0, 0), c(0, 0, 0)),
   seasonal.period = NULL,
   fixed = NULL,
+  include.constant = FALSE,
   optim_control = list(maxit = 200)
 )
 }
@@ -43,6 +44,10 @@ non-seasonal MA, seasonal MA (for each seasonal component), sigma. Use \code{fix
 to estimate all parameters, or provide a vector with \code{NA} for
 parameters to estimate and numeric values for parameters to fix. Default is \code{NULL}
 (all parameters estimated).}
+
+\item{include.constant}{Should the ARIMA model include a costant term? The
+default is \code{TRUE} for undifferenced series, \code{FALSE} for differenced ones
+(where a mean would not affect the fit nor predictions).}
 
 \item{optim_control}{A list of control parameters passed to \code{\link[stats]{optim}}.
 Default is \code{list(maxit = 200)}.}
