@@ -456,7 +456,7 @@ msarima <- function(
   ma_name <- sapply(1:NROW(order_mat), function(i) {
     if (order_mat[i, 3] > 0) {
       if (i == 1) {
-        "AR"
+        "MA"
       } else {
         paste0("SMA", i - 1, ".", 1:order_mat[i, 3])
       }
