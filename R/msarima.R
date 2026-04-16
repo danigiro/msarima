@@ -257,6 +257,7 @@ msarima <- function(
         )
       )
     } else {
+      ar_comp <- NULL
       poly_ar <- polynomial(1)
     }
 
@@ -293,11 +294,13 @@ msarima <- function(
 
     # Construct total polynomials
     poly <- poly_ar * poly_i
+
     if (length(poly) > 1) {
       para_ar <- -poly[2:length(poly)]
     } else {
       para_ar <- 0
     }
+
     if (length(poly_ma) > 1) {
       para_ma <- poly_ma[2:length(poly_ma)]
     } else {
