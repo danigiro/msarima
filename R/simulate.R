@@ -118,32 +118,58 @@ simulate.msarima <- function(
 msarima.sim <- function(
   nsim,
   order = c(0, 0, 0),
-  seasonal = list(c(0, 0, 0), c(0, 0, 0)),
+  seasonal = list(),
   seasonal.period = NULL,
   ar = NULL,
   ma = NULL,
   sigma2 = 1,
   burn = NULL
 ) {
-  # Validate seasonal input
-  if (!is.list(seasonal)) {
-    stop("'seasonal' must be a list")
-  }
-  n_seasonal <- length(seasonal)
-
-  if (n_seasonal < 2) {
-    stop("'seasonal' must have at least two seasonal components")
-  }
-
-  # Check that each seasonal element is a vector of length 3
-  for (i in 1:n_seasonal) {
-    if (!is.numeric(seasonal[[i]]) || length(seasonal[[i]]) != 3) {
-      stop(sprintf("seasonal[[%d]] must be a numeric vector of length 3", i))
+  if (is.null(seasonal) || (is.list(seasonal) && length(seasonal) == 0)) {
+    seasonal <- list()
+    n_seasonal <- 0
+    seasonal.period <- numeric(0)
+  } else {
+    if (!is.list(seasonal)) {
+      stop("'seasonal' must be a list or NULL")
     }
-    if (any(seasonal[[i]] < 0) || any(seasonal[[i]] != floor(seasonal[[i]]))) {
-      stop(sprintf("seasonal[[%d]] must contain non-negative integers", i))
+    n_seasonal <- length(seasonal)
+
+    for (i in seq_len(n_seasonal)) {
+      if (!is.numeric(seasonal[[i]]) || length(seasonal[[i]]) != 3) {
+        stop(sprintf("seasonal[[%d]] must be a numeric vector of length 3", i))
+      }
+      if (
+        any(seasonal[[i]] < 0) || any(seasonal[[i]] != floor(seasonal[[i]]))
+      ) {
+        stop(sprintf("seasonal[[%d]] must contain non-negative integers", i))
+      }
+    }
+
+    if (length(seasonal.period) != n_seasonal) {
+      stop("'seasonal.period' must have the same length as 'seasonal'")
     }
   }
+
+  # # Validate seasonal input
+  # if (!is.list(seasonal)) {
+  #   stop("'seasonal' must be a list")
+  # }
+  # n_seasonal <- length(seasonal)
+
+  # if (n_seasonal < 2) {
+  #   stop("'seasonal' must have at least two seasonal components")
+  # }
+
+  # # Check that each seasonal element is a vector of length 3
+  # for (i in 1:n_seasonal) {
+  #   if (!is.numeric(seasonal[[i]]) || length(seasonal[[i]]) != 3) {
+  #     stop(sprintf("seasonal[[%d]] must be a numeric vector of length 3", i))
+  #   }
+  #   if (any(seasonal[[i]] < 0) || any(seasonal[[i]] != floor(seasonal[[i]]))) {
+  #     stop(sprintf("seasonal[[%d]] must contain non-negative integers", i))
+  #   }
+  # }
 
   # Build order matrix (same structure as in msarima)
   order_mat <- do.call(rbind, c(list(order), seasonal))
@@ -171,7 +197,12 @@ msarima.sim <- function(
     poly_ar <- do.call(
       prod,
       mapply(
-        function(x, y) polynomial(c(1, rep(0, x - 1), -y)),
+        #function(x, y) polynomial(c(1, rep(0, x - 1), -y)),
+        function(x, y) {
+          seq_par <- rep(0, length(y) * x)
+          seq_par[cumsum(rep(x, length(y)))] <- y
+          polynomial(c(1, -seq_par))
+        },
         x = unique(ar_comp),
         y = ar_beta,
         SIMPLIFY = FALSE
@@ -189,7 +220,12 @@ msarima.sim <- function(
     poly_ma <- do.call(
       prod,
       mapply(
-        function(x, y) polynomial(c(1, rep(0, x - 1), y)),
+        #function(x, y) polynomial(c(1, rep(0, x - 1), y)),
+        function(x, y) {
+          seq_par <- rep(0, length(y) * x)
+          seq_par[cumsum(rep(x, length(y)))] <- y
+          polynomial(c(1, seq_par))
+        },
         x = unique(ma_comp),
         y = ma_beta,
         SIMPLIFY = FALSE
@@ -206,7 +242,7 @@ msarima.sim <- function(
       mapply(
         function(x, y) {
           if (y > 0) {
-            polynomial(c(1, rep(0, x - 1), -1))
+            polynomial(c(1, rep(0, x - 1), -1))^y
           } else {
             polynomial(1)
           }

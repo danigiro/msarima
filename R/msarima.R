@@ -111,7 +111,7 @@
 msarima <- function(
   y,
   order = c(0, 0, 0),
-  seasonal = list(c(0, 0, 0), c(0, 0, 0)),
+  seasonal = list(),
   seasonal.period = NULL,
   fixed = NULL,
   include.constant = FALSE,
@@ -138,35 +138,62 @@ msarima <- function(
     y_frequency <- frequency(y)
   }
 
-  # Validate seasonal input
-  if (!is.list(seasonal)) {
-    stop("'seasonal' must be a list")
-  }
-  n_seasonal <- length(seasonal)
-  if (n_seasonal < 2) {
-    stop("'seasonal' must have at least two seasonal components")
-  }
-
-  # Check that each seasonal element is a vector of length 3
-  for (i in 1:n_seasonal) {
-    if (!is.numeric(seasonal[[i]]) || length(seasonal[[i]]) != 3) {
-      stop(sprintf("seasonal[[%d]] must be a numeric vector of length 3", i))
+  if (is.null(seasonal) || (is.list(seasonal) && length(seasonal) == 0)) {
+    seasonal <- list()
+    n_seasonal <- 0
+    seasonal.period <- numeric(0)
+  } else {
+    if (!is.list(seasonal)) {
+      stop("'seasonal' must be a list or NULL")
     }
-    if (any(seasonal[[i]] < 0) || any(seasonal[[i]] != floor(seasonal[[i]]))) {
-      stop(sprintf("seasonal[[%d]] must contain non-negative integers", i))
+    n_seasonal <- length(seasonal)
+
+    for (i in seq_len(n_seasonal)) {
+      if (!is.numeric(seasonal[[i]]) || length(seasonal[[i]]) != 3) {
+        stop(sprintf("seasonal[[%d]] must be a numeric vector of length 3", i))
+      }
+      if (
+        any(seasonal[[i]] < 0) || any(seasonal[[i]] != floor(seasonal[[i]]))
+      ) {
+        stop(sprintf("seasonal[[%d]] must contain non-negative integers", i))
+      }
+    }
+
+    if (is.null(seasonal.period)) {
+      seasonal.period <- y_frequency
+    }
+
+    if (length(seasonal.period) != n_seasonal) {
+      stop("'seasonal.period' must have the same length as 'seasonal'")
     }
   }
 
-  # Handle seasonal.period
-  if (is.null(seasonal.period)) {
-    seasonal.period <- y_frequency
-  }
-
-  if (length(seasonal.period) != n_seasonal) {
-    stop(
-      "'seasonal.period' must have the same lenght of 'seasonal.period'"
-    )
-  }
+  # # Validate seasonal input
+  # if (!is.list(seasonal)) {
+  #   stop("'seasonal' must be a list")
+  # }
+  # n_seasonal <- length(seasonal)
+  # if (n_seasonal < 1) {
+  #   stop("'seasonal' must have at least two seasonal components")
+  # }
+  # # Check that each seasonal element is a vector of length 3
+  # for (i in 1:n_seasonal) {
+  #   if (!is.numeric(seasonal[[i]]) || length(seasonal[[i]]) != 3) {
+  #     stop(sprintf("seasonal[[%d]] must be a numeric vector of length 3", i))
+  #   }
+  #   if (any(seasonal[[i]] < 0) || any(seasonal[[i]] != floor(seasonal[[i]]))) {
+  #     stop(sprintf("seasonal[[%d]] must contain non-negative integers", i))
+  #   }
+  # }
+  # # Handle seasonal.period
+  # if (is.null(seasonal.period)) {
+  #   seasonal.period <- y_frequency
+  # }
+  # if (length(seasonal.period) != n_seasonal) {
+  #   stop(
+  #     "'seasonal.period' must have the same lenght of 'seasonal.period'"
+  #   )
+  # }
 
   # Store seasonal orders for easy access
   seasonal_orders <- seasonal
@@ -182,16 +209,18 @@ msarima <- function(
     include.constant <- FALSE
   }
 
-  # Validate seasonal periods
-  for (s in 1:n_seasonal) {
-    if (!is.na(S_vec[s]) && (S_vec[s] < 2 || S_vec[s] > n / 2)) {
-      stop(sprintf("Invalid seasonal period S%d", s))
+  if (n_seasonal > 0) {
+    # Validate seasonal periods
+    for (s in 1:n_seasonal) {
+      if (!is.na(S_vec[s]) && (S_vec[s] < 2 || S_vec[s] > n / 2)) {
+        stop(sprintf("Invalid seasonal period S%d", s))
+      }
     }
   }
 
-  if (any(order_mat[, 2] > 1)) {
-    stop("Differencing orders must be 0 or 1")
-  }
+  #if (any(order_mat[, 2] > 1)) {
+  #  stop("Differencing orders must be 0 or 1")
+  #}
 
   # Apply differencing
   xx <- as.numeric(y)
@@ -250,7 +279,12 @@ msarima <- function(
       poly_ar <- do.call(
         prod,
         mapply(
-          function(x, y) polynomial(c(1, rep(0, x - 1), -y)),
+          #function(x, y) polynomial(c(1, rep(0, x - 1), -y)),
+          function(x, y) {
+            seq_par <- rep(0, length(y) * x)
+            seq_par[cumsum(rep(x, length(y)))] <- y
+            polynomial(c(1, -seq_par))
+          },
           x = unique(ar_comp),
           y = ar_beta,
           SIMPLIFY = FALSE
@@ -268,7 +302,12 @@ msarima <- function(
       poly_ma <- do.call(
         prod,
         mapply(
-          function(x, y) polynomial(c(1, rep(0, x - 1), y)),
+          #function(x, y) polynomial(c(1, rep(0, x - 1), y)),
+          function(x, y) {
+            seq_par <- rep(0, length(y) * x)
+            seq_par[cumsum(rep(x, length(y)))] <- y
+            polynomial(c(1, seq_par))
+          },
           x = unique(ma_comp),
           y = ma_beta,
           SIMPLIFY = FALSE
@@ -282,7 +321,14 @@ msarima <- function(
       poly_i <- do.call(
         prod,
         mapply(
-          function(x, y) polynomial(c(1, rep(0, x - 1), y)),
+          #function(x, y) polynomial(c(1, rep(0, x - 1), y)),
+          function(x, y) {
+            if (y > 0) {
+              polynomial(c(1, rep(0, x - 1), -1))^y
+            } else {
+              polynomial(1)
+            }
+          },
           x = c(1, seasonal.period),
           y = order_mat[, 2],
           SIMPLIFY = FALSE
@@ -436,9 +482,9 @@ msarima <- function(
   } else {
     fit$hessian <- fit$hessian[
       include.constant - n_params_total,
-      include.constant - n_params_total
+      include.constant - n_params_total,
+      drop = FALSE
     ]
-
     if (any(is.na(fit$hessian)) || det(-fit$hessian) <= 0) {
       warning("Hessian is singular. Standard errors may be unreliable.")
       var_coef <- matrix(NA, nrow = n_params, ncol = n_params)

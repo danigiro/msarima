@@ -7,7 +7,7 @@
 msarima(
   y,
   order = c(0, 0, 0),
-  seasonal = list(c(0, 0, 0), c(0, 0, 0)),
+  seasonal = list(),
   seasonal.period = NULL,
   fixed = NULL,
   include.constant = FALSE,
