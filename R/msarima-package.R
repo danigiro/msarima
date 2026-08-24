@@ -7,5 +7,7 @@
 #' @importFrom polynom polynomial
 #' @importFrom stats optim pnorm sd printCoefmat BIC AIC setNames simulate
 #' @importFrom stats rnorm ts qnorm convolve frequency is.ts tsp
+#' @importFrom stats acf lag na.contiguous
+#' @importFrom graphics abline points
 ## usethis namespace: end
 NULL

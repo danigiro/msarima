@@ -12,41 +12,46 @@ msarima.sim(
   ar = NULL,
   ma = NULL,
   sigma2 = 1,
-  burn = NULL
+  burn = NULL,
+  intercept = 0
 )
 }
 \arguments{
-\item{nsim}{Number of periods for the simulated series (required).}
+\item{nsim}{Length of the simulated series (required).}
 
 \item{order}{A numeric vector of length 3 specifying the non-seasonal part of the
 ARIMA model: the AR order (p), the degree of differencing (d), and the MA order (q).
 Default is \code{c(0, 0, 0)}.}
 
 \item{seasonal}{A list of numeric vectors, each of length 3, specifying the seasonal
-components. Each vector gives the seasonal AR order (P), seasonal differencing order (D),
-and seasonal MA order (Q) for that seasonal component.
-The list must contain at least one seasonal component.
-Default is \code{list(c(0, 0, 0))}.}
+components. Each vector gives the seasonal AR order (P), the seasonal differencing
+order (D), and the seasonal MA order (Q) of one component. Use \code{list()} for a
+model without seasonal components. Default is \code{list()}.}
 
-\item{seasonal.period}{A numeric vector specifying the seasonal periods corresponding
-to each element in \code{seasonal}. Default is \code{NULL}.}
+\item{seasonal.period}{A numeric vector of seasonal periods, one for each element of
+\code{seasonal}. Default is \code{NULL}.}
 
-\item{ar}{Numeric vector of AR coefficients (non-seasonal and seasonal combined).
-Length must match the total AR order from \code{order} and all \code{seasonal} components.
-Default is \code{NULL}.}
+\item{ar}{Numeric vector of AR coefficients, non-seasonal first and then one block per
+seasonal component. Its length must match the total AR order implied by \code{order}
+and \code{seasonal}. Default is \code{NULL}.}
 
-\item{ma}{Numeric vector of MA coefficients (non-seasonal and seasonal combined).
-Length must match the total MA order from \code{order} and all \code{seasonal} components.
-Default is \code{NULL}.}
+\item{ma}{Numeric vector of MA coefficients, ordered as \code{ar}. Its length must match
+the total MA order implied by \code{order} and \code{seasonal}. Default is \code{NULL}.}
 
 \item{sigma2}{Innovation variance. Default is 1.}
 
-\item{burn}{Number of burn-in observations to discard. If \code{NULL}, automatically
-set to \code{max(100, 2 * kk)} where \code{kk} is the maximum lag in the model.
+\item{burn}{Number of burn-in observations to discard. If \code{NULL}, it is set to
+\code{max(100, 2 * kk)}, where \code{kk} is the largest lag in the model.
 Default is \code{NULL}.}
+
+\item{intercept}{Constant term of the model equation, that is \eqn{\mu} in
+\eqn{y_t = \mu + \sum \phi_i y_{t-i} + \sum \theta_j e_{t-j} + e_t}. This is the
+intercept, not the mean of the process: for a stationary model the mean is
+\code{intercept / prod(1 - ar)}. Default is 0.}
 }
 \value{
-A time series object (msts) containing the simulated series of length \code{nsim}.
+A time series object of length \code{nsim}: \code{ts} with one seasonal period,
+\code{msts} with several.
 }
 \description{
 Simulates a time series from a multi-seasonal ARIMA model with specified parameters.

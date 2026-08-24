@@ -5,18 +5,19 @@
 #' components.
 #'
 #' @param object An object of class \code{"msarima"}.
-#' @param nsim Number of periods for the simulated series. Default is 100.
-#' @param seed Either \code{NULL} or an integer that will be used in a call to
-#'   \code{\link[base]{set.seed}} before simulating the time series. Default is \code{NULL}.
+#' @param nsim Length of the simulated series. Default is 100.
+#' @param seed Either \code{NULL} or an integer passed to \code{\link[base]{set.seed}}
+#'   before simulating, to make the result reproducible. Default is \code{NULL}.
 #' @param burn Number of burn-in observations to discard. Default is 100.
 #' @param ... Additional arguments (currently not used).
 #'
-#' @return A time series object (ts or msts) containing the simulated series of length \code{nsim}.
-#'   The time series structure matches that of the original data used to fit the model.
+#' @return A time series object (\code{ts} or \code{msts}) of length \code{nsim}, with the
+#'   seasonal periods of the fitted model.
 #'
 #' @details
-#' This function extracts the model specification and parameters from a fitted
-#' \code{msarima} object and simulates a time series by calling \code{\link{msarima.sim}}.
+#' The model specification and the estimated parameters, including the constant term when
+#' the model was fitted with \code{include.constant = TRUE}, are extracted from the fitted
+#' object and passed to \code{\link{msarima.sim}}.
 #'
 #' @examples
 #' # Simulate data
@@ -46,22 +47,25 @@ simulate.msarima <- function(
   burn = 100,
   ...
 ) {
-  # Set seed if provided
   if (!is.null(seed)) {
     set.seed(seed)
   }
 
-  # Extract model specification
   order_mat <- do.call(rbind, c(list(object$order), object$seasonal))
   sum_order <- colSums(order_mat)[-2]
 
-  # Extract coefficients
   ar_idx <- if (sum_order[1] != 0) 1:sum_order[1] else NULL
   ma_idx <- if (sum_order[2] != 0) sum_order[1] + (1:sum_order[2]) else NULL
 
   sigma2 <- object$sigma2
 
-  # Call msarima.sim with extracted parameters
+  # Intercept, only present if the model was fitted with include.constant = TRUE
+  if ("intercept" %in% names(object$coef)) {
+    mu <- unname(object$coef[["intercept"]])
+  } else {
+    mu <- 0
+  }
+
   msarima.sim(
     nsim = nsim,
     order = object$order,
@@ -70,7 +74,8 @@ simulate.msarima <- function(
     ar = if (length(ar_idx) > 0) object$coef[ar_idx] else NULL,
     ma = if (length(ma_idx) > 0) object$coef[ma_idx] else NULL,
     sigma2 = sigma2,
-    burn = burn
+    burn = burn,
+    intercept = mu
   )
 }
 
@@ -80,29 +85,32 @@ simulate.msarima <- function(
 #' Simulates a time series from a multi-seasonal ARIMA model with specified parameters.
 #' This function provides a direct interface for simulation without requiring a fitted model object.
 #'
-#' @param nsim Number of periods for the simulated series (required).
+#' @param nsim Length of the simulated series (required).
 #' @param order A numeric vector of length 3 specifying the non-seasonal part of the
 #'   ARIMA model: the AR order (p), the degree of differencing (d), and the MA order (q).
 #'   Default is \code{c(0, 0, 0)}.
 #' @param seasonal A list of numeric vectors, each of length 3, specifying the seasonal
-#'   components. Each vector gives the seasonal AR order (P), seasonal differencing order (D),
-#'   and seasonal MA order (Q) for that seasonal component.
-#'   The list must contain at least one seasonal component.
-#'   Default is \code{list(c(0, 0, 0))}.
-#' @param seasonal.period A numeric vector specifying the seasonal periods corresponding
-#'   to each element in \code{seasonal}. Default is \code{NULL}.
-#' @param ar Numeric vector of AR coefficients (non-seasonal and seasonal combined).
-#'   Length must match the total AR order from \code{order} and all \code{seasonal} components.
-#'   Default is \code{NULL}.
-#' @param ma Numeric vector of MA coefficients (non-seasonal and seasonal combined).
-#'   Length must match the total MA order from \code{order} and all \code{seasonal} components.
-#'   Default is \code{NULL}.
+#'   components. Each vector gives the seasonal AR order (P), the seasonal differencing
+#'   order (D), and the seasonal MA order (Q) of one component. Use \code{list()} for a
+#'   model without seasonal components. Default is \code{list()}.
+#' @param seasonal.period A numeric vector of seasonal periods, one for each element of
+#'   \code{seasonal}. Default is \code{NULL}.
+#' @param ar Numeric vector of AR coefficients, non-seasonal first and then one block per
+#'   seasonal component. Its length must match the total AR order implied by \code{order}
+#'   and \code{seasonal}. Default is \code{NULL}.
+#' @param ma Numeric vector of MA coefficients, ordered as \code{ar}. Its length must match
+#'   the total MA order implied by \code{order} and \code{seasonal}. Default is \code{NULL}.
 #' @param sigma2 Innovation variance. Default is 1.
-#' @param burn Number of burn-in observations to discard. If \code{NULL}, automatically
-#'   set to \code{max(100, 2 * kk)} where \code{kk} is the maximum lag in the model.
+#' @param burn Number of burn-in observations to discard. If \code{NULL}, it is set to
+#'   \code{max(100, 2 * kk)}, where \code{kk} is the largest lag in the model.
 #'   Default is \code{NULL}.
+#' @param intercept Constant term of the model equation, that is \eqn{\mu} in
+#'   \eqn{y_t = \mu + \sum \phi_i y_{t-i} + \sum \theta_j e_{t-j} + e_t}. This is the
+#'   intercept, not the mean of the process: for a stationary model the mean is
+#'   \code{intercept / prod(1 - ar)}. Default is 0.
 #'
-#' @return A time series object (msts) containing the simulated series of length \code{nsim}.
+#' @return A time series object of length \code{nsim}: \code{ts} with one seasonal period,
+#'   \code{msts} with several.
 #'
 #' @examples
 #' # Simulate data
@@ -123,7 +131,8 @@ msarima.sim <- function(
   ar = NULL,
   ma = NULL,
   sigma2 = 1,
-  burn = NULL
+  burn = NULL,
+  intercept = 0
 ) {
   if (is.null(seasonal) || (is.list(seasonal) && length(seasonal) == 0)) {
     seasonal <- list()
@@ -147,44 +156,31 @@ msarima.sim <- function(
     }
 
     if (length(seasonal.period) != n_seasonal) {
-      stop("'seasonal.period' must have the same length as 'seasonal'")
+      stop(sprintf(
+        "'seasonal' and 'seasonal.period' must have the same length (%d and %d)",
+        n_seasonal,
+        length(seasonal.period)
+      ))
     }
   }
 
-  # # Validate seasonal input
-  # if (!is.list(seasonal)) {
-  #   stop("'seasonal' must be a list")
-  # }
-  # n_seasonal <- length(seasonal)
-
-  # if (n_seasonal < 2) {
-  #   stop("'seasonal' must have at least two seasonal components")
-  # }
-
-  # # Check that each seasonal element is a vector of length 3
-  # for (i in 1:n_seasonal) {
-  #   if (!is.numeric(seasonal[[i]]) || length(seasonal[[i]]) != 3) {
-  #     stop(sprintf("seasonal[[%d]] must be a numeric vector of length 3", i))
-  #   }
-  #   if (any(seasonal[[i]] < 0) || any(seasonal[[i]] != floor(seasonal[[i]]))) {
-  #     stop(sprintf("seasonal[[%d]] must contain non-negative integers", i))
-  #   }
-  # }
-
-  # Build order matrix (same structure as in msarima)
   order_mat <- do.call(rbind, c(list(order), seasonal))
   S_vec <- c(1, seasonal.period) # Include 1 for non-seasonal
 
-  # Count total AR and MA parameters
   n_ar <- sum(order_mat[, 1])
   n_ma <- sum(order_mat[, 3])
 
-  # Validate parameters match orders
   if (n_ar > 0 && (is.null(ar) || length(ar) != n_ar)) {
-    stop(sprintf("Length of AR coefficients must be %d to match orders", n_ar))
+    stop(sprintf(
+      "'ar' must have length %d to match the AR orders in 'order' and 'seasonal'",
+      n_ar
+    ))
   }
   if (n_ma > 0 && (is.null(ma) || length(ma) != n_ma)) {
-    stop(sprintf("Length of MA coefficients must be %d to match orders", n_ma))
+    stop(sprintf(
+      "'ma' must have length %d to match the MA orders in 'order' and 'seasonal'",
+      n_ma
+    ))
   }
 
   sigma <- sqrt(sigma2)
@@ -197,7 +193,6 @@ msarima.sim <- function(
     poly_ar <- do.call(
       prod,
       mapply(
-        #function(x, y) polynomial(c(1, rep(0, x - 1), -y)),
         function(x, y) {
           seq_par <- rep(0, length(y) * x)
           seq_par[cumsum(rep(x, length(y)))] <- y
@@ -220,7 +215,6 @@ msarima.sim <- function(
     poly_ma <- do.call(
       prod,
       mapply(
-        #function(x, y) polynomial(c(1, rep(0, x - 1), y)),
         function(x, y) {
           seq_par <- rep(0, length(y) * x)
           seq_par[cumsum(rep(x, length(y)))] <- y
@@ -256,12 +250,10 @@ msarima.sim <- function(
     poly_i <- polynomial(1)
   }
 
-  # Total polynomials
   poly_ar_tot <- poly_ar
   poly_ma_tot <- poly_ma
   poly <- poly_ar * poly_i
 
-  # Extract parameters
   if (length(poly_ar_tot) > 1) {
     para_ar <- -poly_ar_tot[2:length(poly_ar_tot)]
   } else {
@@ -285,27 +277,32 @@ msarima.sim <- function(
   k <- length(para)
   kk <- max(k_ar, k_ma, k)
 
-  # Determine burn-in
   if (is.null(burn)) {
     burn <- max(100, 2 * kk)
   }
 
   n_total <- nsim + burn
-  # Generate innovations
   y <- rnorm(n_total, mean = 0, sd = sigma)
   eps <- rnorm(n_total, mean = 0, sd = sigma)
 
-  # Generate the series (exact same loop as original msarima.sim)
+  # Start the recursion at the implied level of the process, so that the
+  # burn-in does not have to absorb the whole intercept
+  if (intercept != 0) {
+    ar_sum <- if (length(poly) > 1) sum(as.numeric(poly)) else 1
+    if (abs(ar_sum) > 1e-8) {
+      y[1:kk] <- y[1:kk] + intercept / ar_sum
+    }
+  }
+
   for (j in (kk + 1):n_total) {
-    y[j] <- sum(para * y[(j - 1):(j - k)]) +
+    y[j] <- intercept +
+      sum(para * y[(j - 1):(j - k)]) +
       sum(para_ma * eps[(j - 1):(j - k_ma)]) +
       eps[j]
   }
 
-  # Remove burn-in
   y_sim <- y[(burn + 1):n_total]
 
-  # Create ts or msts object
   valid_periods <- seasonal.period[!is.na(seasonal.period)]
   if (length(valid_periods) > 1) {
     y_sim <- msts(y_sim, seasonal.periods = valid_periods)

@@ -2,3 +2,9 @@
 ^\.Rproj\.user$
 ^README\.Rmd$
 ^README\.html$
+^trash_folder$
+^data-raw$
+^docs$
+^_pkgdown\.yml$
+^pkgdown$
+^\.github$

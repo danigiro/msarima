@@ -1,39 +1,38 @@
-#' Fit Multi-Seasonal ARIMA Model
+#' Fit a Multi-Seasonal ARIMA Model
 #'
 #' @description
 #' Fits an ARIMA model with one or more seasonal components to a univariate time series.
-#' This function extends the standard ARIMA framework to handle time series with
-#' multiple seasonal patterns, such as daily and weekly seasonality in hourly data,
-#' or weekly and yearly seasonality in daily data.
+#' This function extends the standard ARIMA framework to time series with several
+#' seasonal patterns, such as daily and weekly seasonality in hourly data, or weekly
+#' and yearly seasonality in daily data.
 #'
-#' @param y A numeric vector or time series object (ts or msts) containing the data to
-#'   be modeled. If a ts object is provided and \code{seasonal.period} is not specified,
-#'   the frequency from the ts object will be used as the first seasonal period. If an
-#'   msts object is provided, its multiple seasonal periods will be used automatically.
+#' @param y A numeric vector or time series object (\code{ts} or \code{msts}) containing
+#'   the data to be modelled. If \code{y} is a \code{ts} object and \code{seasonal.period}
+#'   is not supplied, its frequency is used as the first seasonal period; if \code{y} is
+#'   an \code{msts} object, its seasonal periods are used.
 #' @param order A numeric vector of length 3 specifying the non-seasonal part of the
 #'   ARIMA model: the AR order (p), the degree of differencing (d), and the MA order (q).
 #'   Default is \code{c(0, 0, 0)}.
 #' @param seasonal A list of numeric vectors, each of length 3, specifying the seasonal
-#'   components. Each vector gives the seasonal AR order (P), seasonal differencing order (D),
-#'   and seasonal MA order (Q) for that seasonal component. For example,
-#'   \code{list(c(1, 0, 1), c(0, 1, 1))} specifies two seasonal components.
-#'   The list must contain at least one seasonal component.
-#'   Default is \code{list(c(0, 0, 0), c(0, 0, 0))}.
-#' @param seasonal.period A numeric vector specifying the seasonal periods corresponding
-#'   to each element in \code{seasonal}. For example, \code{c(7, 30)} for weekly and
-#'   monthly seasonality. If not provided and \code{y} is a ts object with frequency > 1,
-#'   the frequency will be used as the first seasonal period. If \code{y} is an msts object,
-#'   its seasonal periods will be used automatically. Default is \code{NULL}.
-#' @param fixed A numeric vector of the same length as the total number of parameters
-#'   (including sigma). If supplied, only \code{NA} entries in \code{fixed} will be varied.
-#'   The order of parameters is: non-seasonal AR, seasonal AR (for each seasonal component),
-#'   non-seasonal MA, seasonal MA (for each seasonal component), sigma. Use \code{fixed = NULL}
-#'   to estimate all parameters, or provide a vector with \code{NA} for
-#'   parameters to estimate and numeric values for parameters to fix. Default is \code{NULL}
-#'   (all parameters estimated).
-#' @param include.constant Should the ARIMA model include a costant term? The
-#'   default is `TRUE` for undifferenced series, `FALSE` for differenced ones
-#'   (where a mean would not affect the fit nor predictions).
+#'   components. Each vector gives the seasonal AR order (P), the seasonal differencing
+#'   order (D), and the seasonal MA order (Q) of one component. For example,
+#'   \code{list(c(1, 0, 1), c(0, 1, 1))} specifies two seasonal components. Use
+#'   \code{list()} for a model without seasonal components. Default is \code{list()}.
+#' @param seasonal.period A numeric vector of seasonal periods, one for each element of
+#'   \code{seasonal}, for example \code{c(7, 30)} for weekly and monthly seasonality.
+#'   If \code{NULL}, the periods are taken from \code{y} when it is a \code{ts} or
+#'   \code{msts} object. Default is \code{NULL}.
+#' @param fixed A numeric vector with one entry per parameter, used to hold some of them
+#'   at a given value: only the \code{NA} entries are estimated. The parameters are
+#'   ordered as non-seasonal AR, seasonal AR (one block per seasonal component),
+#'   non-seasonal MA, seasonal MA (one block per seasonal component), sigma, and the
+#'   constant term when \code{include.constant = TRUE}. Default is \code{NULL}, meaning
+#'   that all parameters are estimated.
+#' @param include.constant Should the model include a constant term? The constant is the
+#'   intercept of the model equation, not the mean of the series: for a stationary model
+#'   the two are related by \code{mean = intercept / prod(1 - ar)}. A constant cannot be
+#'   combined with differencing and is dropped, with a warning, when \code{d} or any
+#'   \code{D} is non-zero. Default is \code{FALSE}.
 #' @param optim_control A list of control parameters passed to \code{\link[stats]{optim}}.
 #'   Default is \code{list(maxit = 200)}.
 #'
@@ -41,17 +40,20 @@
 #' \item{order}{The non-seasonal ARIMA order (p, d, q).}
 #' \item{seasonal}{List of seasonal component specifications.}
 #' \item{seasonal.period}{Vector of seasonal periods.}
-#' \item{coef}{Named vector of estimated coefficients (AR, SAR, MA, SMA parameters).}
+#' \item{coef}{Named vector of estimated coefficients: the AR, SAR, MA and SMA
+#'   parameters, followed by the intercept if \code{include.constant = TRUE}.}
 #' \item{var_coef}{Variance-covariance matrix of the coefficient estimates.}
 #' \item{mask}{Logical vector indicating which parameters were fixed.}
 #' \item{loglik}{Log-likelihood of the fitted model.}
 #' \item{aic}{Akaike Information Criterion.}
 #' \item{bic}{Bayesian Information Criterion.}
 #' \item{aicc}{Corrected Akaike Information Criterion.}
-#' \item{sigma2}{Estimated variance of the residuals.}
+#' \item{sigma2}{Estimated innovation variance.}
 #' \item{x}{The original time series.}
-#' \item{fitted}{Fitted values.}
-#' \item{residuals}{Model residuals.}
+#' \item{fitted}{One-step-ahead fitted values, on the scale of the original series.}
+#' \item{residuals}{Model residuals. Together with \code{fitted}, the first
+#'   \code{d + sum(D * S)} values are \code{NA}, since differencing leaves no
+#'   observation to predict there.}
 #' \item{method}{Description of the fitted model.}
 #' \item{series}{Name of the series.}
 #' \item{nobs}{Number of observations in the original series.}
@@ -60,22 +62,27 @@
 #' \item{convergence}{Convergence code from \code{optim} (0 indicates successful convergence).}
 #'
 #' @details
-#' The model is estimated using maximum likelihood via numerical optimization with
-#' \code{\link[stats]{optim}} using the BFGS algorithm.
+#' The model is estimated by conditional maximum likelihood: the residuals are computed
+#' recursively and the resulting Gaussian log-likelihood is maximised numerically with
+#' \code{\link[stats]{optim}}, using the BFGS algorithm.
+#'
+#' When \code{d} or any \code{D} is non-zero, the series is differenced before estimation
+#' and the ARMA part is estimated on the differenced data. The first
+#' \code{d + sum(D * S)} observations are therefore not used, which is why the residuals
+#' start with as many \code{NA} values.
 #'
 #' Standard errors are computed from the inverse of the observed information matrix
-#' (negative Hessian). If the Hessian is singular, a warning is issued and standard
+#' (negative Hessian). If the Hessian is singular, a warning is issued and the standard
 #' errors are set to \code{NA}.
 #'
 #' @note
 #' \itemize{
-#'   \item The series must have at least 10 observations.
-#'   \item The \code{seasonal} list must contain at least one seasonal component (it cannot be empty).
-#'   \item Seasonal periods must be at least 2 and less than half the series length.
-#'   \item Differencing orders (d, D for each seasonal component) are restricted to 0 or 1.
-#'   \item The function may take longer to converge for complex models with many parameters.
-#'   \item If input is ts or msts, the output x, fitted, and residuals preserve the same structure.
-#'   \item If input is numeric and seasonal periods are specified, output is msts.
+#'   \item The series must have at least 10 observations, both before and after differencing.
+#'   \item Seasonal periods must be at least 2 and at most half the length of the series.
+#'   \item If \code{y} is a \code{ts} or \code{msts} object, \code{x}, \code{fitted} and
+#'     \code{residuals} keep the same time series structure. If \code{y} is a plain numeric
+#'     vector, they are returned as \code{ts} with one seasonal period, or as \code{msts}
+#'     with several.
 #' }
 #'
 #' @examples
@@ -93,14 +100,19 @@
 #' print(fit)
 #' summary(fit)
 #'
-#' # Example 2: Using msts object (multiple periods detected automatically)
+#' # Example 2: msts input, seasonal periods detected automatically
 #' y_msts <- msts(y, seasonal.periods = c(4, 11))
 #' fit_msts <- msarima(y_msts, order = c(1, 0, 0),
 #'                     seasonal = list(c(1, 0, 0), c(0, 0, 1)))
-#' # Both periods (4 and 11) are used automatically
 #'
-#' # Example 4: Fixing parameters
-#' # Note: fixed vector length must match total parameters (AR + SAR + MA + SMA + sigma)
+#' # Example 3: differencing
+#' fit_diff <- msarima(cumsum(y), order = c(1, 1, 0),
+#'                     seasonal = list(c(0, 0, 1)),
+#'                     seasonal.period = 4)
+#' head(residuals(fit_diff))  # the first residual is NA
+#'
+#' # Example 4: fixing parameters
+#' # Note: the length of 'fixed' must match AR + SAR + MA + SMA + sigma
 #' fit_fixed <- msarima(y, order = c(1, 0, 0),
 #'                      seasonal = list(c(1, 0, 0), c(0, 0, 1)),
 #'                      seasonal.period = c(4, 11),
@@ -117,7 +129,6 @@ msarima <- function(
   include.constant = FALSE,
   optim_control = list(maxit = 200)
 ) {
-  # Input validation
   if (!is.numeric(y)) {
     stop("'y' must be numeric")
   }
@@ -125,12 +136,11 @@ msarima <- function(
     stop("'y' contains missing values")
   }
   if (length(y) < 10) {
-    stop("Series too short")
+    stop(sprintf("'y' has %d observations, at least 10 are needed", length(y)))
   }
 
   series <- deparse1(substitute(y))
 
-  # Extract frequency from ts or msts object if available
   y_frequency <- NULL
   if (inherits(y, "msts")) {
     y_frequency <- attr(y, "msts")
@@ -164,78 +174,68 @@ msarima <- function(
     }
 
     if (length(seasonal.period) != n_seasonal) {
-      stop("'seasonal.period' must have the same length as 'seasonal'")
+      stop(sprintf(
+        "'seasonal' and 'seasonal.period' must have the same length (%d and %d)",
+        n_seasonal,
+        length(seasonal.period)
+      ))
     }
   }
 
-  # # Validate seasonal input
-  # if (!is.list(seasonal)) {
-  #   stop("'seasonal' must be a list")
-  # }
-  # n_seasonal <- length(seasonal)
-  # if (n_seasonal < 1) {
-  #   stop("'seasonal' must have at least two seasonal components")
-  # }
-  # # Check that each seasonal element is a vector of length 3
-  # for (i in 1:n_seasonal) {
-  #   if (!is.numeric(seasonal[[i]]) || length(seasonal[[i]]) != 3) {
-  #     stop(sprintf("seasonal[[%d]] must be a numeric vector of length 3", i))
-  #   }
-  #   if (any(seasonal[[i]] < 0) || any(seasonal[[i]] != floor(seasonal[[i]]))) {
-  #     stop(sprintf("seasonal[[%d]] must contain non-negative integers", i))
-  #   }
-  # }
-  # # Handle seasonal.period
-  # if (is.null(seasonal.period)) {
-  #   seasonal.period <- y_frequency
-  # }
-  # if (length(seasonal.period) != n_seasonal) {
-  #   stop(
-  #     "'seasonal.period' must have the same lenght of 'seasonal.period'"
-  #   )
-  # }
-
-  # Store seasonal orders for easy access
   seasonal_orders <- seasonal
 
   n <- length(y)
 
-  # Combine orders for easier handling (P, D, Q)
   order_mat <- do.call(rbind, c(list(order), seasonal_orders))
   S_vec <- seasonal.period
 
   if (any(order_mat[, 2] > 0) && include.constant) {
-    warning("No constant term fitted as the order of difference is 1 or more.")
+    warning("No constant term fitted: the model includes differencing")
     include.constant <- FALSE
   }
 
   if (n_seasonal > 0) {
-    # Validate seasonal periods
     for (s in 1:n_seasonal) {
       if (!is.na(S_vec[s]) && (S_vec[s] < 2 || S_vec[s] > n / 2)) {
-        stop(sprintf("Invalid seasonal period S%d", s))
+        stop(sprintf(
+          "Invalid 'seasonal.period[%d]' = %g: seasonal periods must be between 2 and %g (half the length of 'y')",
+          s,
+          S_vec[s],
+          n / 2
+        ))
       }
     }
   }
 
-  #if (any(order_mat[, 2] > 1)) {
-  #  stop("Differencing orders must be 0 or 1")
-  #}
-
   # Apply differencing
-  xx <- as.numeric(y)
+  y_num <- as.numeric(y)
+  xx <- y_num
+  S_all <- c(1, S_vec)
+  for (i in seq_len(NROW(order_mat))) {
+    if (order_mat[i, 2] > 0) {
+      xx <- diff(xx, lag = S_all[i], differences = order_mat[i, 2])
+    }
+  }
+  n_diff <- n - length(xx) # observations lost to differencing
   nstar <- length(xx)
+  if (nstar < 10) {
+    stop(sprintf(
+      "Only %d observations are left after differencing, at least 10 are needed",
+      nstar
+    ))
+  }
 
-  # Total number of parameters (including sigma)
   n_params <- sum(order_mat[, c(1, 3)]) # AR and MA parameters only
   n_params_total <- n_params + 1 + include.constant # +1 for sigma, +1 mu
 
-  # Handle fixed parameters
   if (!is.null(fixed)) {
     if (length(fixed) != n_params_total) {
       stop(sprintf(
-        "'fixed' must be NULL or a vector of length %d (total number of parameters including sigma)",
-        n_params_total
+        "'fixed' has length %d, but the model has %d parameters: %d AR/MA coefficients, sigma%s",
+        length(fixed),
+        n_params_total,
+        n_params,
+        if (include.constant) " and the constant" else ""
       ))
     }
     mask <- !is.na(fixed)
@@ -250,9 +250,7 @@ msarima <- function(
 
   all_fixed <- all(mask)
 
-  # Log-likelihood function (vectorized version)
   loglik <- function(beta_free) {
-    # Reconstruct full parameter vector (including sigma)
     beta <- numeric(n_params_total)
 
     if (all_fixed) {
@@ -262,7 +260,6 @@ msarima <- function(
       beta[!mask] <- beta_free
     }
 
-    # Extract sigma (last element)
     sigma <- beta[n_params_total - include.constant]
 
     if (include.constant) {
@@ -279,7 +276,6 @@ msarima <- function(
       poly_ar <- do.call(
         prod,
         mapply(
-          #function(x, y) polynomial(c(1, rep(0, x - 1), -y)),
           function(x, y) {
             seq_par <- rep(0, length(y) * x)
             seq_par[cumsum(rep(x, length(y)))] <- y
@@ -302,7 +298,6 @@ msarima <- function(
       poly_ma <- do.call(
         prod,
         mapply(
-          #function(x, y) polynomial(c(1, rep(0, x - 1), y)),
           function(x, y) {
             seq_par <- rep(0, length(y) * x)
             seq_par[cumsum(rep(x, length(y)))] <- y
@@ -321,7 +316,6 @@ msarima <- function(
       poly_i <- do.call(
         prod,
         mapply(
-          #function(x, y) polynomial(c(1, rep(0, x - 1), y)),
           function(x, y) {
             if (y > 0) {
               polynomial(c(1, rep(0, x - 1), -1))^y
@@ -338,8 +332,10 @@ msarima <- function(
       poly_i <- polynomial(1)
     }
 
-    # Construct total polynomials
-    poly <- poly_ar * poly_i
+    # Construct total polynomials. `xx` has already been differenced, so the
+    # recursion only uses the stationary AR polynomial (poly_i is kept for
+    # reporting / forecasting).
+    poly <- poly_ar
 
     if (length(poly) > 1) {
       para_ar <- -poly[2:length(poly)]
@@ -358,12 +354,10 @@ msarima <- function(
     nxx <- length(xx)
     kk <- max(k_ar, k_ma)
     xx_start <- rep(mean(xx[1:min(20, nxx / 5)]), kk)
-    #xx_start <- rep(mean(xx[1:20]), kk)
     xxl <- c(xx_start, xx)
     nxxl <- length(xxl)
     epsl <- rep(0, nxxl)
 
-    # Residual calculation
     for (j in (kk + 1):nxxl) {
       epsl[j] <- xxl[j] -
         mu -
@@ -371,10 +365,8 @@ msarima <- function(
           sum(para_ma * epsl[(j - 1):(j - k_ma)]))
     }
 
-    # Remove burn-in
     residuals <- epsl[(kk + 1):nxxl]
 
-    # Vectorized log-likelihood calculation
     sigma2 <- sigma^2
     n_eff <- nxxl - kk
     ss <- sum(residuals^2)
@@ -390,8 +382,7 @@ msarima <- function(
 
   beta_ini <- order_mat[, -2]
   beta_ini[beta_ini == 0] <- NA
-  beta_ini <- beta_ini * 0.1
-  beta_ini <- as.vector(beta_ini)
+  beta_ini <- rep(0.1, sum(beta_ini, na.rm = TRUE))
   beta_ini <- beta_ini[!is.na(beta_ini)]
   beta_ini_full <- c(beta_ini, sd(xx))
 
@@ -399,19 +390,16 @@ msarima <- function(
     beta_ini_full <- c(beta_ini_full, mean(xx))
   }
 
-  # Use fixed values where specified
   if (any(mask)) {
     beta_ini_full[mask] <- fixed[mask]
   }
 
-  # Extract only free parameters for optimization
   beta_ini <- beta_ini_full[!mask]
 
-  # Optimize log-likelihood
   if (all_fixed) {
     fit <- list(
       par = fixed,
-      value = loglik(numeric(0)),
+      value = loglik(numeric(0))$value,
       convergence = 0,
       hessian = matrix(0, nrow = 0, ncol = 0)
     )
@@ -426,12 +414,19 @@ msarima <- function(
     )
   }
 
-  # Check convergence
   if (fit$convergence != 0) {
-    warning(paste("Optimization did not converge. Code:", fit$convergence))
+    if (fit$convergence == 1) {
+      warning(
+        "Optimization did not converge: iteration limit reached, try increasing 'maxit' in 'optim_control'"
+      )
+    } else {
+      warning(sprintf(
+        "Optimization did not converge (optim code %d), the estimates may not be reliable",
+        fit$convergence
+      ))
+    }
   }
 
-  # Reconstruct full parameter vector
   if (all_fixed) {
     beta_full <- fixed
   } else {
@@ -440,18 +435,14 @@ msarima <- function(
     beta_full[!mask] <- fit$par
   }
 
-  LLO <- loglik(beta_full)
+  # loglik() expects only the free parameters, not the full vector
+  LLO <- loglik(beta_full[!mask])
 
-  # Extract estimated parameters
   sigma2_hat <- beta_full[n_params_total - include.constant]^2
   if (include.constant) {
     mu_hat <- beta_full[n_params_total]
   }
 
-  # Coefficients (AR and MA parameters only, exclude sigma)
-  Coef <- beta_full[include.constant - n_params_total]
-
-  # Calculate variance-covariance matrix
   if (all_fixed) {
     var_coef <- matrix(0, nrow = n_params, ncol = n_params)
   } else if (any(mask_params)) {
@@ -469,7 +460,7 @@ msarima <- function(
         (any(is.na(fit$hessian[free_params_idx, free_params_idx])) ||
           det(-fit$hessian[free_params_idx, free_params_idx]) <= 0)
     ) {
-      warning("Hessian is singular. Standard errors may be unreliable.")
+      warning("Hessian is singular: standard errors are not available")
       var_coef <- matrix(NA, nrow = n_params, ncol = n_params)
     } else if (length(free_params_idx) > 0) {
       j0_free <- (-fit$hessian[free_params_idx, free_params_idx]) / nstar
@@ -485,8 +476,10 @@ msarima <- function(
       include.constant - n_params_total,
       drop = FALSE
     ]
-    if (any(is.na(fit$hessian)) || det(-fit$hessian) <= 0) {
-      warning("Hessian is singular. Standard errors may be unreliable.")
+    if (any(dim(fit$hessian) == 0)) {
+      var_coef <- NULL
+    } else if (any(is.na(fit$hessian)) || det(-fit$hessian) <= 0) {
+      warning("Hessian is singular: standard errors are not available")
       var_coef <- matrix(NA, nrow = n_params, ncol = n_params)
     } else {
       j0 <- (-fit$hessian) / nstar
@@ -494,7 +487,6 @@ msarima <- function(
     }
   }
 
-  # Calculate information criteria
   if (all_fixed) {
     npar_total <- 0
   } else {
@@ -512,28 +504,28 @@ msarima <- function(
   ar_name <- sapply(1:NROW(order_mat), function(i) {
     if (order_mat[i, 1] > 0) {
       if (i == 1) {
-        "AR"
+        paste0("AR(", 1:order_mat[i, 1], ")")
       } else {
-        paste0("SAR", i - 1, ".", 1:order_mat[i, 1])
+        paste0("SAR(", i - 1, ",", 1:order_mat[i, 1], ")")
       }
     } else {
       NA
     }
   })
-  ar_name <- ar_name[!is.na(ar_name)]
+  ar_name <- unlist(ar_name[!is.na(ar_name)])
 
   ma_name <- sapply(1:NROW(order_mat), function(i) {
     if (order_mat[i, 3] > 0) {
       if (i == 1) {
-        "MA"
+        paste0("MA(", 1:order_mat[i, 3], ")")
       } else {
-        paste0("SMA", i - 1, ".", 1:order_mat[i, 3])
+        paste0("SMA(", i - 1, ",", 1:order_mat[i, 3], ")")
       }
     } else {
       NA
     }
   })
-  ma_name <- ma_name[!is.na(ma_name)]
+  ma_name <- unlist(ma_name[!is.na(ma_name)])
   coef_names <- c(ar_name, ma_name)
 
   if (include.constant) {
@@ -541,7 +533,7 @@ msarima <- function(
   }
 
   resid <- LLO$residuals
-  fits <- xx - LLO$residuals
+  fits <- y_num[(n_diff + 1):n] - resid
 
   if (is.null(tsp(y))) {
     valid_periods <- seasonal.period[!is.na(seasonal.period)]
@@ -552,7 +544,6 @@ msarima <- function(
     }
   }
 
-  # Create method description
   method_desc <- sprintf(
     "MSARIMA(%d,%d,%d)",
     order_mat[1, 1],
@@ -574,32 +565,33 @@ msarima <- function(
     collapse = ""
   )
 
-  # Create output object
+  coef_vec <- beta_full[include.constant - n_params_total]
+  if (length(coef_vec) == 0) {
+    coef_vec <- NULL
+  } else {
+    coef_vec <- setNames(coef_vec, coef_names)
+  }
+
   out <- structure(
     list(
-      # Model specification
       order = order,
       seasonal = seasonal,
       seasonal.period = seasonal.period,
 
-      # Coefficients
-      coef = setNames(Coef, coef_names),
+      coef = coef_vec,
       var_coef = var_coef,
       mask = mask_params,
 
-      # Model fit statistics
       loglik = loglik_val,
       aic = aic,
       bic = bic,
       aicc = aicc,
       sigma2 = sigma2_hat,
 
-      # Series and residuals
       x = y,
       fitted = copy_msts(y, fits),
       residuals = copy_msts(y, resid),
 
-      # Additional info
       method = method_desc,
       series = series,
       nobs = n,

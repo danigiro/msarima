@@ -1,0 +1,30 @@
+citHeader("To cite msarima in publications, please use both references:")
+
+bibentry(
+  bibtype = "Manual",
+  title   = "{msarima}: Multi-Seasonal ARIMA Models",
+  author  = c(
+    person("Daniele", "Girolimetto"),
+    person("Francesco", "Lisi"),
+    person("Matteo", "Grigoletto")
+  ),
+  year    = "2025",
+  note    = sprintf("R package version %s", meta$Version),
+  url     = "https://github.com/danigiro/msarima"
+)
+
+bibentry(
+  bibtype   = "Article",
+  title     = "Multiple seasonal autoregressive integrated moving average models",
+  author    = c(
+    person("Francesco", "Lisi"),
+    person("Matteo", "Grigoletto")
+  ),
+  journal   = "Journal of Forecasting",
+  publisher = "Wiley",
+  year      = "2025",
+  volume    = "44",
+  number    = "6",
+  pages     = "2037--2052",
+  doi       = "10.1002/for.3283"
+)

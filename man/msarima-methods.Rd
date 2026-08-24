@@ -4,7 +4,7 @@
 \alias{msarima-methods}
 \alias{print.msarima}
 \alias{summary.msarima}
-\alias{print.summary.msarima}
+\alias{print.summary_msarima}
 \alias{coef.msarima}
 \alias{fitted.msarima}
 \alias{residuals.msarima}
@@ -17,7 +17,7 @@
 
 \method{summary}{msarima}(object, ...)
 
-\method{print}{summary.msarima}(x, digits = 4, signif.stars = TRUE, ...)
+\method{print}{summary_msarima}(x, digits = 4, signif.stars = TRUE, ...)
 
 \method{coef}{msarima}(object, ...)
 
@@ -43,7 +43,7 @@
 \value{
 \describe{
 \item{\code{print}}{Returns the input object invisibly.}
-\item{\code{summary}}{Returns an object of class \code{"summary.msarima"} containing:
+\item{\code{summary}}{Returns an object of class \code{"summary_msarima"} containing:
 \itemize{
 \item \code{call}: The matched call.
 \item \code{series}: Name of the time series.
@@ -51,7 +51,7 @@
 \item \code{seasonal}: List of seasonal component specifications.
 \item \code{seasonal.period}: Vector of seasonal periods.
 \item \code{coefficients}: Matrix with estimates, standard errors, z-values, and p-values.
-\item \code{sigma2}: Estimated variance of the residuals.
+\item \code{sigma2}: Estimated innovation variance.
 \item \code{loglik}: Log-likelihood of the fitted model.
 \item \code{aic}: Akaike Information Criterion.
 \item \code{bic}: Bayesian Information Criterion.

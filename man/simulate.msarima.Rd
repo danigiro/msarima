@@ -9,26 +9,27 @@
 \arguments{
 \item{object}{An object of class \code{"msarima"}.}
 
-\item{nsim}{Number of periods for the simulated series. Default is 100.}
+\item{nsim}{Length of the simulated series. Default is 100.}
 
-\item{seed}{Either \code{NULL} or an integer that will be used in a call to
-\code{\link[base]{set.seed}} before simulating the time series. Default is \code{NULL}.}
+\item{seed}{Either \code{NULL} or an integer passed to \code{\link[base]{set.seed}}
+before simulating, to make the result reproducible. Default is \code{NULL}.}
 
 \item{burn}{Number of burn-in observations to discard. Default is 100.}
 
 \item{...}{Additional arguments (currently not used).}
 }
 \value{
-A time series object (ts or msts) containing the simulated series of length \code{nsim}.
-The time series structure matches that of the original data used to fit the model.
+A time series object (\code{ts} or \code{msts}) of length \code{nsim}, with the
+seasonal periods of the fitted model.
 }
 \description{
 Returns a simulated time series from a fitted ARIMA model with one or more seasonal
 components.
 }
 \details{
-This function extracts the model specification and parameters from a fitted
-\code{msarima} object and simulates a time series by calling \code{\link{msarima.sim}}.
+The model specification and the estimated parameters, including the constant term when
+the model was fitted with \code{include.constant = TRUE}, are extracted from the fitted
+object and passed to \code{\link{msarima.sim}}.
 }
 \examples{
 # Simulate data

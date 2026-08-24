@@ -2,19 +2,20 @@
 % Please edit documentation in R/forecast.R
 \name{forecast.msarima}
 \alias{forecast.msarima}
-\title{Forecast from Multi-Seasonal ARIMA Models}
+\title{Forecast from a Multi-Seasonal ARIMA Model}
 \usage{
 \method{forecast}{msarima}(object, h = 10, level = c(80, 95), fan = FALSE, ...)
 }
 \arguments{
 \item{object}{An object of class \code{"msarima"}.}
 
-\item{h}{Number of periods for forecasting. Default is 10.}
+\item{h}{Number of periods to forecast. Default is 10.}
 
-\item{level}{Confidence levels for prediction intervals.}
+\item{level}{Confidence levels for the prediction intervals, in percent.
+Default is \code{c(80, 95)}.}
 
-\item{fan}{If \code{TRUE}, \code{level} is set to \code{seq(51, 99, by = 3)}.
-This is suitable for fan plots.}
+\item{fan}{If \code{TRUE}, \code{level} is set to \code{seq(51, 99, by = 3)},
+which is suitable for fan plots. Default is \code{FALSE}.}
 
 \item{...}{Additional arguments (currently not used).}
 }
@@ -34,13 +35,16 @@ confidence level specified in \code{level}.}
 \item{residuals}{Residuals from the model.}
 }
 \description{
-Returns forecasts and other information for a fitted multi-seasonal ARIMA model.
+Returns forecasts and prediction intervals for a fitted multi-seasonal ARIMA model.
 }
 \details{
-The forecast is computed recursively using the fitted MSARIMA model.
-Prediction intervals are computed assuming normally distributed errors and
-the forecast variance \eqn{V_h} is computed using the MA(\eqn{\infty}) representation
-of the model.
+Point forecasts are computed by running the model recursion forward, setting the
+future innovations to zero. Differencing and the constant term, when present, are
+taken from the fitted model, so the forecasts are on the scale of the original
+series.
+
+Prediction intervals assume normally distributed innovations. The forecast variance
+\eqn{V_h} is obtained from the MA(\eqn{\infty}) representation of the model.
 }
 \examples{
 # Simulate and fit model

@@ -1,0 +1,7 @@
+// pkgdown forces `body { font-size: 18px }` above the xxl breakpoint,
+// which overrides $font-size-base. Keep one knob at every width.
+@include media-breakpoint-up(xxl) {
+  body {
+    font-size: $font-size-base;
+  }
+}

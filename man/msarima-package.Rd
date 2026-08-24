@@ -5,7 +5,9 @@
 \alias{msarima-package}
 \title{msarima: Multi-Seasonal ARIMA Model}
 \description{
-Provides functions for fitting, forecasting, and simulating ARIMA models with multiple seasonal components. Extends the standard ARIMA framework to handle time series with multiple seasonal patterns, such as daily and weekly seasonality. The package implements maximum likelihood estimation via numerical optimization and supports model diagnostics, forecasting with prediction intervals, and simulation from fitted models.
+\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
+
+Fit, forecast and simulate autoregressive integrated moving average (ARIMA) models with more than one seasonal component, following Lisi and Grigoletto (2025) \doi{10.1002/for.3283}. Series observed at high frequency often display several seasonal cycles at once, such as the daily and the weekly pattern of hourly data, which a single seasonal ARIMA operator cannot represent. Estimation is by conditional maximum likelihood through numerical optimisation, with support for fixed coefficients and a constant term. Seasonal correlograms, forecasts with prediction intervals, and simulation from a model specification or from a fitted model are also provided.
 }
 \seealso{
 Useful links:
@@ -16,7 +18,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Daniele Girolimetto \email{daniele.girolimetto@unipd.it} (\href{https://orcid.org/0000-0001-9387-1232}{ORCID})
+\strong{Maintainer}: Daniele Girolimetto \email{daniele.girolimetto@unipd.it} (\href{https://orcid.org/0000-0001-9387-1232}{ORCID}) [copyright holder]
 
 Authors:
 \itemize{

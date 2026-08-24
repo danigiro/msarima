@@ -25,7 +25,7 @@
 #' @return
 #' \describe{
 #'   \item{\code{print}}{Returns the input object invisibly.}
-#'   \item{\code{summary}}{Returns an object of class \code{"summary.msarima"} containing:
+#'   \item{\code{summary}}{Returns an object of class \code{"summary_msarima"} containing:
 #'     \itemize{
 #'       \item \code{call}: The matched call.
 #'       \item \code{series}: Name of the time series.
@@ -33,7 +33,7 @@
 #'       \item \code{seasonal}: List of seasonal component specifications.
 #'       \item \code{seasonal.period}: Vector of seasonal periods.
 #'       \item \code{coefficients}: Matrix with estimates, standard errors, z-values, and p-values.
-#'       \item \code{sigma2}: Estimated variance of the residuals.
+#'       \item \code{sigma2}: Estimated innovation variance.
 #'       \item \code{loglik}: Log-likelihood of the fitted model.
 #'       \item \code{aic}: Akaike Information Criterion.
 #'       \item \code{bic}: Bayesian Information Criterion.
@@ -87,8 +87,12 @@ print.msarima <- function(x, ...) {
   cat("Series:", x$series, "\n")
   cat(x$method)
 
-  cat("\n\nCoefficients:\n")
-  print(round(x$coef, 4))
+  if (!is.null(x$coef)) {
+    cat("\n\nCoefficients:\n")
+    print(round(x$coef, 4))
+  } else {
+    cat("\n\nNo coefficients estimated.\n")
+  }
 
   cat(sprintf("\nsigma^2 = %.4f", x$sigma2))
   cat(sprintf("  log likelihood = %.2f", x$loglik))
@@ -119,12 +123,16 @@ summary.msarima <- function(object, ...) {
   tstat <- object$coef / se
   pval <- 2 * pnorm(abs(tstat), lower.tail = FALSE)
 
-  coef_matrix <- cbind(
-    Estimate = object$coef,
-    `Std. Error` = se,
-    `z value` = tstat,
-    `Pr(>|z|)` = pval
-  )
+  if (!is.null(object$coef)) {
+    coef_matrix <- cbind(
+      Estimate = object$coef,
+      `Std. Error` = se,
+      `z value` = tstat,
+      `Pr(>|z|)` = pval
+    )
+  } else {
+    coef_matrix <- NULL
+  }
 
   out <- structure(
     list(
@@ -144,27 +152,31 @@ summary.msarima <- function(object, ...) {
       method = object$method,
       convergence = object$convergence
     ),
-    class = "summary.msarima"
+    class = "summary_msarima"
   )
 
   return(out)
 }
 
 #' @rdname msarima-methods
-#' @method print summary.msarima
+#' @method print summary_msarima
 #' @export
-print.summary.msarima <- function(x, digits = 4, signif.stars = TRUE, ...) {
+print.summary_msarima <- function(x, digits = 4, signif.stars = TRUE, ...) {
   cat("Series:", x$series, "\n")
   cat(x$method)
 
-  cat("\n\nCoefficients:\n")
-  printCoefmat(
-    x$coefficients,
-    digits = digits,
-    signif.stars = signif.stars,
-    P.values = TRUE,
-    has.Pvalue = TRUE
-  )
+  if (!is.null(x$coef)) {
+    cat("\n\nCoefficients:\n")
+    printCoefmat(
+      x$coefficients,
+      digits = digits,
+      signif.stars = signif.stars,
+      P.values = TRUE,
+      has.Pvalue = TRUE
+    )
+  } else {
+    cat("\n\nNo coefficients estimated.\n")
+  }
 
   cat(sprintf("\nsigma^2 = %.*f", digits, x$sigma2))
   cat(sprintf("  log likelihood = %.*f", digits, x$loglik))

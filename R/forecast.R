@@ -1,13 +1,14 @@
-#' Forecast from Multi-Seasonal ARIMA Models
+#' Forecast from a Multi-Seasonal ARIMA Model
 #'
 #' @description
-#' Returns forecasts and other information for a fitted multi-seasonal ARIMA model.
+#' Returns forecasts and prediction intervals for a fitted multi-seasonal ARIMA model.
 #'
 #' @param object An object of class \code{"msarima"}.
-#' @param h Number of periods for forecasting. Default is 10.
-#' @param level Confidence levels for prediction intervals.
-#' @param fan If \code{TRUE}, \code{level} is set to \code{seq(51, 99, by = 3)}.
-#'   This is suitable for fan plots.
+#' @param h Number of periods to forecast. Default is 10.
+#' @param level Confidence levels for the prediction intervals, in percent.
+#'   Default is \code{c(80, 95)}.
+#' @param fan If \code{TRUE}, \code{level} is set to \code{seq(51, 99, by = 3)},
+#'   which is suitable for fan plots. Default is \code{FALSE}.
 #' @param ... Additional arguments (currently not used).
 #'
 #' @return An object of class \code{"forecast"} containing the following elements:
@@ -25,10 +26,13 @@
 #' \item{residuals}{Residuals from the model.}
 #'
 #' @details
-#' The forecast is computed recursively using the fitted MSARIMA model.
-#' Prediction intervals are computed assuming normally distributed errors and
-#' the forecast variance \eqn{V_h} is computed using the MA(\eqn{\infty}) representation
-#' of the model.
+#' Point forecasts are computed by running the model recursion forward, setting the
+#' future innovations to zero. Differencing and the constant term, when present, are
+#' taken from the fitted model, so the forecasts are on the scale of the original
+#' series.
+#'
+#' Prediction intervals assume normally distributed innovations. The forecast variance
+#' \eqn{V_h} is obtained from the MA(\eqn{\infty}) representation of the model.
 #'
 #' @examples
 #' # Simulate and fit model
@@ -61,34 +65,36 @@ forecast.msarima <- function(
   fan = FALSE,
   ...
 ) {
-  # Handle fan parameter
   if (fan) {
     level <- seq(51, 99, by = 3)
   } else {
     level <- sort(level)
   }
 
-  # Extract model specification as matrix (same structure as in msarima)
   order_mat <- do.call(rbind, c(list(object$order), object$seasonal))
   S_vec <- c(1, object$seasonal.period) # Include 1 for non-seasonal
   n_seasonal <- length(object$seasonal)
 
   sigma <- sqrt(object$sigma2)
 
-  # Extract coefficients
   coef_names <- names(object$coef)
   n_params <- length(object$coef)
 
-  # Count AR and MA parameters
   n_ar <- sum(order_mat[, 1])
   n_ma <- sum(order_mat[, 3])
 
-  # Split coefficients into AR and MA
   if (n_ar > 0) {
     ar_coefs <- object$coef[1:n_ar]
   }
   if (n_ma > 0) {
     ma_coefs <- object$coef[(n_ar + 1):(n_ar + n_ma)]
+  }
+
+  # Intercept, only present if the model was fitted with include.constant = TRUE
+  if ("intercept" %in% names(object$coef)) {
+    mu <- unname(object$coef[["intercept"]])
+  } else {
+    mu <- 0
   }
 
   # Build AR polynomial
@@ -99,7 +105,11 @@ forecast.msarima <- function(
     poly_ar <- do.call(
       prod,
       mapply(
-        function(x, y) polynomial(c(1, rep(0, x - 1), -y)),
+        function(x, y) {
+          seq_par <- rep(0, length(y) * x)
+          seq_par[cumsum(rep(x, length(y)))] <- y
+          polynomial(c(1, -seq_par))
+        },
         x = unique(ar_comp),
         y = ar_beta,
         SIMPLIFY = FALSE
@@ -117,7 +127,11 @@ forecast.msarima <- function(
     poly_ma <- do.call(
       prod,
       mapply(
-        function(x, y) polynomial(c(1, rep(0, x - 1), y)),
+        function(x, y) {
+          seq_par <- rep(0, length(y) * x)
+          seq_par[cumsum(rep(x, length(y)))] <- y
+          polynomial(c(1, seq_par))
+        },
         x = unique(ma_comp),
         y = ma_beta,
         SIMPLIFY = FALSE
@@ -134,7 +148,7 @@ forecast.msarima <- function(
       mapply(
         function(x, y) {
           if (y > 0) {
-            polynomial(c(1, rep(0, x - 1), -1))
+            polynomial(c(1, rep(0, x - 1), -1))^y
           } else {
             polynomial(1)
           }
@@ -148,12 +162,10 @@ forecast.msarima <- function(
     poly_i <- polynomial(1)
   }
 
-  # Total polynomials
   poly_ar_tot <- poly_ar
   poly_ma_tot <- poly_ma
   poly <- poly_ar * poly_i
 
-  # Extract parameters
   if (length(poly_ar_tot) > 1) {
     para_ar <- -poly_ar_tot[2:length(poly_ar_tot)]
   } else {
@@ -176,26 +188,23 @@ forecast.msarima <- function(
   k_ma <- length(para_ma)
   k <- length(para)
 
-  # Get data and residuals
   x <- object$x
   eps <- object$residuals
   nx <- length(x)
 
-  # Compute point forecasts
   fcast <- numeric(h)
   for (i in 1:h) {
     ar_contrib <- if (k > 0) sum(para * x[nx:(nx - k + 1)]) else 0
     ma_contrib <- if (k_ma > 0) sum(para_ma * eps[nx:(nx - k_ma + 1)]) else 0
 
-    fcast[i] <- ar_contrib + ma_contrib
+    fcast[i] <- mu + ar_contrib + ma_contrib
 
-    # Update series and errors for next forecast
     x <- c(x, fcast[i])
     eps <- c(eps, 0)
     nx <- length(x)
   }
 
-  # ---- Forecast error variance for levels Y ----
+  # Forecast error variance for levels Y
   sigma2 <- object$sigma2
 
   # psi_0..psi_{h-1} for stationary ARMA part: Theta(B)/Phi(B)
@@ -236,7 +245,6 @@ forecast.msarima <- function(
   # Var(e(h)) = sigma2 * sum_{n=0}^{h-1} w_n^2  (cumulative by horizon)
   fvar <- sigma2 * cumsum(w^2)
 
-  # Compute prediction intervals
   nconf <- length(level)
   lower <- upper <- matrix(NA, nrow = h, ncol = nconf)
 
@@ -248,7 +256,6 @@ forecast.msarima <- function(
 
   colnames(lower) <- colnames(upper) <- paste0(level, "%")
 
-  # Return forecast object
   out <- structure(
     list(
       method = object$method,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/msarima.R
 \name{msarima}
 \alias{msarima}
-\title{Fit Multi-Seasonal ARIMA Model}
+\title{Fit a Multi-Seasonal ARIMA Model}
 \usage{
 msarima(
   y,
@@ -15,39 +15,38 @@ msarima(
 )
 }
 \arguments{
-\item{y}{A numeric vector or time series object (ts or msts) containing the data to
-be modeled. If a ts object is provided and \code{seasonal.period} is not specified,
-the frequency from the ts object will be used as the first seasonal period. If an
-msts object is provided, its multiple seasonal periods will be used automatically.}
+\item{y}{A numeric vector or time series object (\code{ts} or \code{msts}) containing
+the data to be modelled. If \code{y} is a \code{ts} object and \code{seasonal.period}
+is not supplied, its frequency is used as the first seasonal period; if \code{y} is
+an \code{msts} object, its seasonal periods are used.}
 
 \item{order}{A numeric vector of length 3 specifying the non-seasonal part of the
 ARIMA model: the AR order (p), the degree of differencing (d), and the MA order (q).
 Default is \code{c(0, 0, 0)}.}
 
 \item{seasonal}{A list of numeric vectors, each of length 3, specifying the seasonal
-components. Each vector gives the seasonal AR order (P), seasonal differencing order (D),
-and seasonal MA order (Q) for that seasonal component. For example,
-\code{list(c(1, 0, 1), c(0, 1, 1))} specifies two seasonal components.
-The list must contain at least one seasonal component.
-Default is \code{list(c(0, 0, 0), c(0, 0, 0))}.}
+components. Each vector gives the seasonal AR order (P), the seasonal differencing
+order (D), and the seasonal MA order (Q) of one component. For example,
+\code{list(c(1, 0, 1), c(0, 1, 1))} specifies two seasonal components. Use
+\code{list()} for a model without seasonal components. Default is \code{list()}.}
 
-\item{seasonal.period}{A numeric vector specifying the seasonal periods corresponding
-to each element in \code{seasonal}. For example, \code{c(7, 30)} for weekly and
-monthly seasonality. If not provided and \code{y} is a ts object with frequency > 1,
-the frequency will be used as the first seasonal period. If \code{y} is an msts object,
-its seasonal periods will be used automatically. Default is \code{NULL}.}
+\item{seasonal.period}{A numeric vector of seasonal periods, one for each element of
+\code{seasonal}, for example \code{c(7, 30)} for weekly and monthly seasonality.
+If \code{NULL}, the periods are taken from \code{y} when it is a \code{ts} or
+\code{msts} object. Default is \code{NULL}.}
 
-\item{fixed}{A numeric vector of the same length as the total number of parameters
-(including sigma). If supplied, only \code{NA} entries in \code{fixed} will be varied.
-The order of parameters is: non-seasonal AR, seasonal AR (for each seasonal component),
-non-seasonal MA, seasonal MA (for each seasonal component), sigma. Use \code{fixed = NULL}
-to estimate all parameters, or provide a vector with \code{NA} for
-parameters to estimate and numeric values for parameters to fix. Default is \code{NULL}
-(all parameters estimated).}
+\item{fixed}{A numeric vector with one entry per parameter, used to hold some of them
+at a given value: only the \code{NA} entries are estimated. The parameters are
+ordered as non-seasonal AR, seasonal AR (one block per seasonal component),
+non-seasonal MA, seasonal MA (one block per seasonal component), sigma, and the
+constant term when \code{include.constant = TRUE}. Default is \code{NULL}, meaning
+that all parameters are estimated.}
 
-\item{include.constant}{Should the ARIMA model include a costant term? The
-default is \code{TRUE} for undifferenced series, \code{FALSE} for differenced ones
-(where a mean would not affect the fit nor predictions).}
+\item{include.constant}{Should the model include a constant term? The constant is the
+intercept of the model equation, not the mean of the series: for a stationary model
+the two are related by \code{mean = intercept / prod(1 - ar)}. A constant cannot be
+combined with differencing and is dropped, with a warning, when \code{d} or any
+\code{D} is non-zero. Default is \code{FALSE}.}
 
 \item{optim_control}{A list of control parameters passed to \code{\link[stats]{optim}}.
 Default is \code{list(maxit = 200)}.}
@@ -57,17 +56,20 @@ An object of class \code{"msarima"}, which is a list containing:
 \item{order}{The non-seasonal ARIMA order (p, d, q).}
 \item{seasonal}{List of seasonal component specifications.}
 \item{seasonal.period}{Vector of seasonal periods.}
-\item{coef}{Named vector of estimated coefficients (AR, SAR, MA, SMA parameters).}
+\item{coef}{Named vector of estimated coefficients: the AR, SAR, MA and SMA
+parameters, followed by the intercept if \code{include.constant = TRUE}.}
 \item{var_coef}{Variance-covariance matrix of the coefficient estimates.}
 \item{mask}{Logical vector indicating which parameters were fixed.}
 \item{loglik}{Log-likelihood of the fitted model.}
 \item{aic}{Akaike Information Criterion.}
 \item{bic}{Bayesian Information Criterion.}
 \item{aicc}{Corrected Akaike Information Criterion.}
-\item{sigma2}{Estimated variance of the residuals.}
+\item{sigma2}{Estimated innovation variance.}
 \item{x}{The original time series.}
-\item{fitted}{Fitted values.}
-\item{residuals}{Model residuals.}
+\item{fitted}{One-step-ahead fitted values, on the scale of the original series.}
+\item{residuals}{Model residuals. Together with \code{fitted}, the first
+\code{d + sum(D * S)} values are \code{NA}, since differencing leaves no
+observation to predict there.}
 \item{method}{Description of the fitted model.}
 \item{series}{Name of the series.}
 \item{nobs}{Number of observations in the original series.}
@@ -77,27 +79,32 @@ An object of class \code{"msarima"}, which is a list containing:
 }
 \description{
 Fits an ARIMA model with one or more seasonal components to a univariate time series.
-This function extends the standard ARIMA framework to handle time series with
-multiple seasonal patterns, such as daily and weekly seasonality in hourly data,
-or weekly and yearly seasonality in daily data.
+This function extends the standard ARIMA framework to time series with several
+seasonal patterns, such as daily and weekly seasonality in hourly data, or weekly
+and yearly seasonality in daily data.
 }
 \details{
-The model is estimated using maximum likelihood via numerical optimization with
-\code{\link[stats]{optim}} using the BFGS algorithm.
+The model is estimated by conditional maximum likelihood: the residuals are computed
+recursively and the resulting Gaussian log-likelihood is maximised numerically with
+\code{\link[stats]{optim}}, using the BFGS algorithm.
+
+When \code{d} or any \code{D} is non-zero, the series is differenced before estimation
+and the ARMA part is estimated on the differenced data. The first
+\code{d + sum(D * S)} observations are therefore not used, which is why the residuals
+start with as many \code{NA} values.
 
 Standard errors are computed from the inverse of the observed information matrix
-(negative Hessian). If the Hessian is singular, a warning is issued and standard
+(negative Hessian). If the Hessian is singular, a warning is issued and the standard
 errors are set to \code{NA}.
 }
 \note{
 \itemize{
-\item The series must have at least 10 observations.
-\item The \code{seasonal} list must contain at least one seasonal component (it cannot be empty).
-\item Seasonal periods must be at least 2 and less than half the series length.
-\item Differencing orders (d, D for each seasonal component) are restricted to 0 or 1.
-\item The function may take longer to converge for complex models with many parameters.
-\item If input is ts or msts, the output x, fitted, and residuals preserve the same structure.
-\item If input is numeric and seasonal periods are specified, output is msts.
+\item The series must have at least 10 observations, both before and after differencing.
+\item Seasonal periods must be at least 2 and at most half the length of the series.
+\item If \code{y} is a \code{ts} or \code{msts} object, \code{x}, \code{fitted} and
+\code{residuals} keep the same time series structure. If \code{y} is a plain numeric
+vector, they are returned as \code{ts} with one seasonal period, or as \code{msts}
+with several.
 }
 }
 \examples{
@@ -115,14 +122,19 @@ fit <- msarima(y, order = c(1, 0, 0),
 print(fit)
 summary(fit)
 
-# Example 2: Using msts object (multiple periods detected automatically)
+# Example 2: msts input, seasonal periods detected automatically
 y_msts <- msts(y, seasonal.periods = c(4, 11))
 fit_msts <- msarima(y_msts, order = c(1, 0, 0),
                     seasonal = list(c(1, 0, 0), c(0, 0, 1)))
-# Both periods (4 and 11) are used automatically
 
-# Example 4: Fixing parameters
-# Note: fixed vector length must match total parameters (AR + SAR + MA + SMA + sigma)
+# Example 3: differencing
+fit_diff <- msarima(cumsum(y), order = c(1, 1, 0),
+                    seasonal = list(c(0, 0, 1)),
+                    seasonal.period = 4)
+head(residuals(fit_diff))  # the first residual is NA
+
+# Example 4: fixing parameters
+# Note: the length of 'fixed' must match AR + SAR + MA + SMA + sigma
 fit_fixed <- msarima(y, order = c(1, 0, 0),
                      seasonal = list(c(1, 0, 0), c(0, 0, 1)),
                      seasonal.period = c(4, 11),

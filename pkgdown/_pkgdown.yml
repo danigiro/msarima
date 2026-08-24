@@ -1,0 +1,42 @@
+url: https://danigiro.github.io/msarima
+
+development:
+  mode: release
+  version_label: light
+  version_tooltip: "Version"
+
+template:
+  bootstrap: 5
+  math-rendering: mathjax
+  bslib:
+    # logo palette: navy #06255F, teal #13A8B5, green #63D2AA, lime #C8ED83
+    font-size-base: "0.9rem"   # 12px
+    base_font: {google: "Inter"}
+    heading_font: {google: "Poppins"}
+    code_font: {google: "JetBrains Mono"}
+    primary: "#06255F"
+    secondary: "#013A63"   # navbar
+    success: "#63D2AA"
+    info: "#13A8B5"
+    link-color: "#0877A8"
+    link-hover-color: "#13A8B5"
+    headings-color: "#06255F"
+    code-color: "#0877A8"
+    code-bg: "#f6efdf40"
+    pre-bg: "#f8f9fa"
+
+navbar:
+  bg: secondary
+  type: dark
+  structure:
+    left: [intro, reference, news]
+    right:  [github, rpro]
+  components:
+    github:
+      icon: fab fa-github fa-lg
+      href: https://github.com/danigiro/msarima
+      aria-label: View on GitHub
+    rpro:
+      icon: fab fa-r-project fa-lg
+      href: https://cran.r-project.org/web/packages/msarima/index.html
+      aria-label: View on CRAN
