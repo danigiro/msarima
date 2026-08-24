@@ -1,0 +1,9 @@
+pandoc: '3.10'
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  msarima: msarima.html
+last_built: 2026-08-24T14:52Z
+urls:
+  reference: https://danigiro.github.io/msarima/reference
+  article: https://danigiro.github.io/msarima/articles
