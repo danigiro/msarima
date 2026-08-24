@@ -3,7 +3,7 @@ pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   msarima: msarima.html
-last_built: 2026-08-24T15:10Z
+last_built: 2026-08-24T15:17Z
 urls:
   reference: https://danigiro.github.io/msarima/reference
   article: https://danigiro.github.io/msarima/articles

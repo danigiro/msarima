@@ -10,7 +10,7 @@ template:
   math-rendering: mathjax
   bslib:
     # logo palette: navy #06255F, teal #13A8B5, green #63D2AA, lime #C8ED83
-    font-size-base: "0.9rem"   # 12px
+    font-size-base: "0.95rem"   # 12px
     base_font: {google: "Inter"}
     heading_font: {google: "Poppins"}
     code_font: {google: "JetBrains Mono"}

@@ -5,3 +5,12 @@
     font-size: $font-size-base;
   }
 }
+
+// On the home page pkgdown reserves 104px of header height to clear the hex
+// logo. The logo is floated, so it overhangs the rule anyway and the reserved
+// height only shows up as a gap under the title.
+@include media-breakpoint-up(sm) {
+  .template-home .page-header {
+    min-height: 0;
+  }
+}
