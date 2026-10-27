@@ -27,7 +27,8 @@ msarima(
   A numeric vector or time series object (`ts` or `msts`) containing the
   data to be modelled. If `y` is a `ts` object and `seasonal.period` is
   not supplied, its frequency is used as the first seasonal period; if
-  `y` is an `msts` object, its seasonal periods are used.
+  `y` is an `msts` object, its seasonal periods are used. Missing values
+  are not allowed.
 
 - order:
 
@@ -50,7 +51,8 @@ msarima(
   A numeric vector of seasonal periods, one for each element of
   `seasonal`, for example `c(7, 30)` for weekly and monthly seasonality.
   If `NULL`, the periods are taken from `y` when it is a `ts` or `msts`
-  object. Default is `NULL`.
+  object. Periods can be given in any order but must be distinct.
+  Default is `NULL`.
 
 - fixed:
 
@@ -66,10 +68,12 @@ msarima(
 
   Should the model include a constant term? The constant is the
   intercept of the model equation, not the mean of the series: for a
-  stationary model the two are related by
-  `mean = intercept / prod(1 - ar)`. A constant cannot be combined with
-  differencing and is dropped, with a warning, when `d` or any `D` is
-  non-zero. Default is `FALSE`.
+  stationary model the two are related by \\\mu = c / \phi(1)\\, where
+  \\c\\ is the intercept and \\\phi(1)\\ is the full AR polynomial
+  (seasonal components included) evaluated at 1. For example, for an
+  AR(1) model \\\mu = c / (1 - \phi_1)\\. A constant cannot be combined
+  with differencing and is dropped, with a warning, when `d` or any `D`
+  is non-zero. Default is `FALSE`.
 
 - optim_control:
 
@@ -87,7 +91,7 @@ An object of class `"msarima"`, which is a list containing:
 
 - seasonal:
 
-  List of seasonal component specifications.
+  List of seasonal orders (P, D, Q), one vector per seasonal component.
 
 - seasonal.period:
 
@@ -100,11 +104,14 @@ An object of class `"msarima"`, which is a list containing:
 
 - var_coef:
 
-  Variance-covariance matrix of the coefficient estimates.
+  Variance-covariance matrix of the coefficient estimates, with the same
+  dimension and order as `coef`. Rows and columns of fixed parameters
+  are `NA`.
 
 - mask:
 
-  Logical vector indicating which parameters were fixed.
+  Logical vector with the same length and order as `coef`, `TRUE` for
+  fixed parameters.
 
 - loglik:
 
@@ -137,12 +144,13 @@ An object of class `"msarima"`, which is a list containing:
 - residuals:
 
   Model residuals. Together with `fitted`, the first `d + sum(D * S)`
-  values are `NA`, since differencing leaves no observation to predict
-  there.
+  values are `NA`, since differencing leaves no observations to predict
+  for them.
 
 - method:
 
-  Description of the fitted model.
+  Character string describing the fitted model, e.g.
+  `"mSARIMA(1,0,0)(1,0,0)[4]"`.
 
 - series:
 
@@ -174,7 +182,9 @@ maximised numerically with
 When `d` or any `D` is non-zero, the series is differenced before
 estimation and the ARMA part is estimated on the differenced data. The
 first `d + sum(D * S)` observations are therefore not used, which is why
-the residuals start with as many `NA` values.
+the residuals and the fitted values start with as many `NA` values:
+these observations have no differenced value to predict, so no residual
+is defined for them under the conditional likelihood.
 
 Standard errors are computed from the inverse of the observed
 information matrix (negative Hessian). If the Hessian is singular, a
@@ -209,7 +219,7 @@ fit <- msarima(y, order = c(1, 0, 0),
                seasonal.period = c(4, 11))
 print(fit)
 #> Series: y 
-#> MSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]
+#> mSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]
 #> 
 #> Coefficients:
 #>    AR(1) SAR(1,1) SMA(2,1) 
@@ -219,7 +229,7 @@ print(fit)
 #> AIC = 192.88   AICc = 193.08   BIC = 206.07
 summary(fit)
 #> Series: y 
-#> MSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]
+#> mSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]
 #> 
 #> Coefficients:
 #>          Estimate Std. Error z value Pr(>|z|)    

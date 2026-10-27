@@ -34,7 +34,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">msarima</a>
 
-    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.0.9006</small>
+    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -78,12 +78,15 @@ every 24 hours <em>and</em> every 168 hours (a week).
 <code>msarima</code> package fits the multiple seasonal model of Lisi
 and Grigoletto (2025),</p>
 <p><span class="math display">\[
-\phi(B)\,\Phi_1(B^{S_1})\cdots\Phi_k(B^{S_k})\,
-\nabla^d \nabla_{S_1}^{D_1}\cdots\nabla_{S_k}^{D_k}\, y_t =
-\theta(B)\,\Theta_1(B^{S_1})\cdots\Theta_k(B^{S_k})\, e_t ,
+\phi(B)\,\prod_{j=1}^{k}\Phi_j\!\left(B^{S_j}\right)\,
+(1-B)^{d}\prod_{j=1}^{k}\left(1-B^{S_j}\right)^{D_j} y_t
+=
+\mu + \theta(B)\,\prod_{j=1}^{k}\Theta_j\!\left(B^{S_j}\right) e_t ,
 \]</span></p>
-<p>with one autoregressive, differencing and moving average operator for
-each seasonal period <span class="math inline">\(S_1, \dots,
+<p>where <span class="math inline">\(e_t\)</span> is white noise with
+variance <span class="math inline">\(\sigma^2\)</span> and <span class="math inline">\(\mu\)</span> is a constant, with one
+autoregressive, differencing and moving average operator for each
+seasonal period <span class="math inline">\(S_1, \dots,
 S_k\)</span>.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/danigiro/msarima" class="external-link">msarima</a></span><span class="op">)</span></span></code></pre></div>
@@ -91,17 +94,17 @@ S_k\)</span>.</p>
 <h2 id="the-data">The data<a class="anchor" aria-label="anchor" href="#the-data"></a>
 </h2>
 <p><code>MAD_m40</code> is the hourly number of vehicles recorded by a
-sensor on the M-40 ring road of Madrid between February and May 2024. It
-is an <code>msts</code> object with seasonal periods 24 and 168 (2904
-observations in all), so those periods do not have to be repeated in
-every call.</p>
+sensor on the M-40 ring road of Madrid over the eight weeks from 3
+February to 29 March 2024. It is an <code>msts</code> object with
+seasonal periods 24 and 168 (1344 observations in all), so those periods
+do not have to be repeated in every call.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">MAD_m40</span>, <span class="fl">12</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Multi-Seasonal Time Series:</span></span>
 <span><span class="co">#&gt; Start: 1 1</span></span>
 <span><span class="co">#&gt; Seasonal Periods: 24 168</span></span>
 <span><span class="co">#&gt; Data:</span></span>
-<span><span class="co">#&gt;  [1]  363  214  175  116  112  103  179  514 1241 1306 1127 1053</span></span>
+<span><span class="co">#&gt;  [1] 485 406 411 320 284 245 239 222 265 409 706 845</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/window.html" class="external-link">window</a></span><span class="op">(</span><span class="va">MAD_m40</span>, end <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>, ylab <span class="op">=</span> <span class="st">"vehicles per hour"</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">"M-40, first four weeks (time in weeks)"</span><span class="op">)</span></span></code></pre></div>
@@ -144,33 +147,33 @@ order as the periods:</p>
 <span>               seasonal <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit</span></span>
 <span><span class="co">#&gt; Series: MAD_m40 </span></span>
-<span><span class="co">#&gt; MSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]</span></span>
+<span><span class="co">#&gt; mSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;    AR(1)    MA(1)    MA(2) SMA(1,1) SMA(2,1) </span></span>
-<span><span class="co">#&gt;   0.8235  -0.0849  -0.0629  -0.7518  -0.8184 </span></span>
+<span><span class="co">#&gt;   0.8847  -0.3737  -0.0906  -0.5603  -0.6836 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; sigma^2 = 5105.4386  log likelihood = -12933.63</span></span>
-<span><span class="co">#&gt; AIC = 25879.25   AICc = 25879.28   BIC = 25914.69</span></span></code></pre></div>
+<span><span class="co">#&gt; sigma^2 = 4009.7288  log likelihood = -5356.48</span></span>
+<span><span class="co">#&gt; AIC = 10724.97   AICc = 10725.04   BIC = 10755.26</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> adds standard errors, obtained from the
 numerical Hessian of the log-likelihood, and the associated tests:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Series: MAD_m40 </span></span>
-<span><span class="co">#&gt; MSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]</span></span>
+<span><span class="co">#&gt; mSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;          Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; AR(1)     0.82355    0.02055  40.082  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; MA(1)    -0.08489    0.03043  -2.790  0.00527 ** </span></span>
-<span><span class="co">#&gt; MA(2)    -0.06288    0.02893  -2.173  0.02976 *  </span></span>
-<span><span class="co">#&gt; SMA(1,1) -0.75184    0.01762 -42.681  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; SMA(2,1) -0.81843    0.01107 -73.901  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; AR(1)     0.88473    0.02473  35.770   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; MA(1)    -0.37373    0.04060  -9.204   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; MA(2)    -0.09059    0.03805  -2.381   0.0173 *  </span></span>
+<span><span class="co">#&gt; SMA(1,1) -0.56029    0.02700 -20.748   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; SMA(2,1) -0.68362    0.02525 -27.072   &lt;2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; sigma^2 = 5105.4386  log likelihood = -12933.6262</span></span>
-<span><span class="co">#&gt; AIC = 25879.2524   AICc = 25879.2834   BIC = 25914.6850</span></span></code></pre></div>
+<span><span class="co">#&gt; sigma^2 = 4009.7288  log likelihood = -5356.4828</span></span>
+<span><span class="co">#&gt; AIC = 10724.9656   AICc = 10725.0390   BIC = 10755.2612</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/stats/coef.html" class="external-link">coef()</a></code>, <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code>, <code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals()</a></code>,
 <code><a href="https://rdrr.io/r/stats/logLik.html" class="external-link">logLik()</a></code>, <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC()</a></code> and <code><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">BIC()</a></code> are all
 available and behave as usual. When the model contains differencing the
@@ -179,7 +182,7 @@ series is differenced before estimation, so the first <span class="math inline">
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>nobs <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">nobs</span>, n.used <span class="op">=</span> <span class="va">fit</span><span class="op">$</span><span class="va">n.used</span>, leading_NA <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;       nobs     n.used leading_NA </span></span>
-<span><span class="co">#&gt;       2904       2712        192</span></span></code></pre></div>
+<span><span class="co">#&gt;       1344       1152        192</span></span></code></pre></div>
 <p>Parameters can be held fixed by supplying <code>fixed</code> with one
 entry per parameter and <code>NA</code> where the parameter is to be
 estimated. The order is AR, seasonal AR, MA, seasonal MA, sigma:</p>
@@ -190,7 +193,7 @@ estimated. The order is AR, seasonal AR, MA, seasonal MA, sigma:</p>
 <span>                     fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="op">-</span><span class="fl">0.6</span>, <span class="cn">NA</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>free <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fit_fixed</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     free    fixed </span></span>
-<span><span class="co">#&gt; 25879.25 25930.09</span></span></code></pre></div>
+<span><span class="co">#&gt; 10724.97 10725.21</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="checking-the-residuals">Checking the residuals<a class="anchor" aria-label="anchor" href="#checking-the-residuals"></a>
@@ -201,6 +204,25 @@ left at the seasonal lags is what the model has failed to capture:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/sacf.html">sacf</a></span><span class="op">(</span><span class="va">fit</span>, lag.max <span class="op">=</span> <span class="fl">200</span>, main <span class="op">=</span> <span class="st">"Residuals"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="msarima_files/figure-html/resid-1.png" class="r-plt" alt="Correlogram of the residuals up to lag 200. The spikes are much smaller than before and mostly inside the confidence band." width="768"></p>
+<p><code><a href="../reference/msportmanteau.html">msportmanteau()</a></code> turns this visual check into a formal
+test, using the multi-seasonal portmanteau statistics of Grigoletto and
+Lisi (2026). With the first 8 lags and 5 multiples of each period, 18
+lags are tested, leaving 13 degrees of freedom after the 5 estimated
+coefficients. Neither the Ljung-Box nor the Monti version rejects the
+absence of residual autocorrelation:</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/msportmanteau.html">msportmanteau</a></span><span class="op">(</span><span class="va">fit</span>, nlag <span class="op">=</span> <span class="fl">5</span>, lags_short <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  Multi-seasonal Ljung-Box test</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; data:  MAD_m40</span></span>
+<span><span class="co">#&gt; X-squared = 16.19, df = 13, p-value = 0.239</span></span>
+<span><span class="fu"><a href="../reference/msportmanteau.html">msportmanteau</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"Monti"</span>, nlag <span class="op">=</span> <span class="fl">5</span>, lags_short <span class="op">=</span> <span class="fl">8</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  Multi-seasonal Monti test</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; data:  MAD_m40</span></span>
+<span><span class="co">#&gt; X-squared = 11.769, df = 13, p-value = 0.5467</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="forecasting">Forecasting<a class="anchor" aria-label="anchor" href="#forecasting"></a>
@@ -209,7 +231,7 @@ left at the seasonal lags is what the model has failed to capture:</p>
 <strong>forecast</strong> package, so it prints and plots like any
 other. Prediction intervals come from the <span class="math inline">\(\mathrm{MA}(\infty)\)</span> representation of the
 model, under normal innovations:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span><span class="va">fit</span>, h <span class="op">=</span> <span class="fl">48</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fc</span>, include <span class="op">=</span> <span class="fl">336</span>, main <span class="op">=</span> <span class="st">"Two days ahead"</span>, ylab <span class="op">=</span> <span class="st">"vehicles per hour"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="msarima_files/figure-html/forecast-1.png" class="r-plt" alt="Line chart of the last two weeks of data followed by 48 hours of forecasts, which repeat the daily shape, inside shaded 80 and 95 per cent prediction bands." width="768"></p>
@@ -219,7 +241,7 @@ model, under normal innovations:</p>
 </h2>
 <p><code><a href="../reference/msarima.sim.html">msarima.sim()</a></code> generates a series from a model
 specification, without any data:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/msarima.sim.html">msarima.sim</a></span><span class="op">(</span>nsim <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>                 order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -229,7 +251,7 @@ specification, without any data:</p>
 <span>                 sigma2 <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span></code></pre></div>
 <p>and <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> does the same from a fitted model,
 reusing its specification and its estimates:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">y_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate</a></span><span class="op">(</span><span class="va">fit</span>, nsim <span class="op">=</span> <span class="fl">168</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -237,7 +259,10 @@ reusing its specification and its estimates:</p>
 </h2>
 <p>Lisi, F. and Grigoletto, M. (2025). Multiple seasonal autoregressive
 integrated moving average models. <em>Journal of Forecasting</em>,
-<strong>44</strong>(6), 2037–2052. </p>
+<strong>44</strong>(6), 2037–2052. <a href="https://doi.org/10.1002/for.3283" class="external-link uri">https://doi.org/10.1002/for.3283</a></p>
+<p>Grigoletto, M. and Lisi, F. (2026). Portmanteau goodness-of-fit tests
+in the presence of simple, mixed, and multiple seasonal autocorrelation.
+<em>arXiv</em>. <a href="https://doi.org/10.48550/arXiv.2609.32381" class="external-link uri">https://doi.org/10.48550/arXiv.2609.32381</a></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

@@ -7,7 +7,7 @@ more seasonal components.
 
 ``` r
 # S3 method for class 'msarima'
-simulate(object = NULL, nsim = 100, seed = NULL, burn = 100, ...)
+simulate(object = NULL, nsim = 100, seed = NULL, burn = NULL, ...)
 ```
 
 ## Arguments
@@ -28,7 +28,10 @@ simulate(object = NULL, nsim = 100, seed = NULL, burn = 100, ...)
 
 - burn:
 
-  Number of burn-in observations to discard. Default is 100.
+  Number of burn-in observations to discard. If `NULL`, it is set by
+  [`msarima.sim`](https://danigiro.github.io/msarima/reference/msarima.sim.md)
+  to `max(100, 2 * kk)`, where `kk` is the largest lag in the model.
+  Default is `NULL`.
 
 - ...:
 

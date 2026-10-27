@@ -44,7 +44,8 @@ msarima.sim(
 - seasonal.period:
 
   A numeric vector of seasonal periods, one for each element of
-  `seasonal`. Default is `NULL`.
+  `seasonal`. Periods can be given in any order but must be distinct.
+  Default is `NULL`.
 
 - ar:
 

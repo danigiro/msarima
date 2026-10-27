@@ -48,7 +48,8 @@
 \item \code{call}: The matched call.
 \item \code{series}: Name of the time series.
 \item \code{order}: Non-seasonal ARIMA order.
-\item \code{seasonal}: List of seasonal component specifications.
+\item \code{seasonal}: List of seasonal orders (P, D, Q), one vector per
+seasonal component.
 \item \code{seasonal.period}: Vector of seasonal periods.
 \item \code{coefficients}: Matrix with estimates, standard errors, z-values, and p-values.
 \item \code{sigma2}: Estimated innovation variance.
@@ -58,7 +59,8 @@
 \item \code{aicc}: Corrected Akaike Information Criterion.
 \item \code{nobs}: Number of observations in the original series.
 \item \code{n.used}: Number of observations used in estimation.
-\item \code{method}: Description of the fitted model.
+\item \code{method}: Character string describing the fitted model, e.g.
+\code{"mSARIMA(1,0,0)(1,0,0)[4]"}.
 \item \code{convergence}: Convergence code from optimization.
 }
 }

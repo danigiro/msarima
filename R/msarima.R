@@ -9,7 +9,8 @@
 #' @param y A numeric vector or time series object (\code{ts} or \code{msts}) containing
 #'   the data to be modelled. If \code{y} is a \code{ts} object and \code{seasonal.period}
 #'   is not supplied, its frequency is used as the first seasonal period; if \code{y} is
-#'   an \code{msts} object, its seasonal periods are used.
+#'   an \code{msts} object, its seasonal periods are used. Missing values are not
+#'   allowed.
 #' @param order A numeric vector of length 3 specifying the non-seasonal part of the
 #'   ARIMA model: the AR order (p), the degree of differencing (d), and the MA order (q).
 #'   Default is \code{c(0, 0, 0)}.
@@ -21,7 +22,8 @@
 #' @param seasonal.period A numeric vector of seasonal periods, one for each element of
 #'   \code{seasonal}, for example \code{c(7, 30)} for weekly and monthly seasonality.
 #'   If \code{NULL}, the periods are taken from \code{y} when it is a \code{ts} or
-#'   \code{msts} object. Default is \code{NULL}.
+#'   \code{msts} object. Periods can be given in any order but must be distinct.
+#'   Default is \code{NULL}.
 #' @param fixed A numeric vector with one entry per parameter, used to hold some of them
 #'   at a given value: only the \code{NA} entries are estimated. The parameters are
 #'   ordered as non-seasonal AR, seasonal AR (one block per seasonal component),
@@ -30,20 +32,25 @@
 #'   that all parameters are estimated.
 #' @param include.constant Should the model include a constant term? The constant is the
 #'   intercept of the model equation, not the mean of the series: for a stationary model
-#'   the two are related by \code{mean = intercept / prod(1 - ar)}. A constant cannot be
-#'   combined with differencing and is dropped, with a warning, when \code{d} or any
-#'   \code{D} is non-zero. Default is \code{FALSE}.
+#'   the two are related by \eqn{\mu = c / \phi(1)}, where \eqn{c} is the intercept and
+#'   \eqn{\phi(1)} is the full AR polynomial (seasonal components included) evaluated
+#'   at 1. For example, for an AR(1) model \eqn{\mu = c / (1 - \phi_1)}. A constant
+#'   cannot be combined with differencing and is dropped, with a warning, when \code{d}
+#'   or any \code{D} is non-zero. Default is \code{FALSE}.
 #' @param optim_control A list of control parameters passed to \code{\link[stats]{optim}}.
 #'   Default is \code{list(maxit = 200)}.
 #'
 #' @return An object of class \code{"msarima"}, which is a list containing:
 #' \item{order}{The non-seasonal ARIMA order (p, d, q).}
-#' \item{seasonal}{List of seasonal component specifications.}
+#' \item{seasonal}{List of seasonal orders (P, D, Q), one vector per seasonal component.}
 #' \item{seasonal.period}{Vector of seasonal periods.}
 #' \item{coef}{Named vector of estimated coefficients: the AR, SAR, MA and SMA
 #'   parameters, followed by the intercept if \code{include.constant = TRUE}.}
-#' \item{var_coef}{Variance-covariance matrix of the coefficient estimates.}
-#' \item{mask}{Logical vector indicating which parameters were fixed.}
+#' \item{var_coef}{Variance-covariance matrix of the coefficient estimates, with
+#'   the same dimension and order as \code{coef}. Rows and columns of fixed
+#'   parameters are \code{NA}.}
+#' \item{mask}{Logical vector with the same length and order as \code{coef},
+#'   \code{TRUE} for fixed parameters.}
 #' \item{loglik}{Log-likelihood of the fitted model.}
 #' \item{aic}{Akaike Information Criterion.}
 #' \item{bic}{Bayesian Information Criterion.}
@@ -53,8 +60,9 @@
 #' \item{fitted}{One-step-ahead fitted values, on the scale of the original series.}
 #' \item{residuals}{Model residuals. Together with \code{fitted}, the first
 #'   \code{d + sum(D * S)} values are \code{NA}, since differencing leaves no
-#'   observation to predict there.}
-#' \item{method}{Description of the fitted model.}
+#'   observations to predict for them.}
+#' \item{method}{Character string describing the fitted model, e.g.
+#'   \code{"mSARIMA(1,0,0)(1,0,0)[4]"}.}
 #' \item{series}{Name of the series.}
 #' \item{nobs}{Number of observations in the original series.}
 #' \item{n.used}{Number of observations used in estimation (after differencing).}
@@ -69,7 +77,9 @@
 #' When \code{d} or any \code{D} is non-zero, the series is differenced before estimation
 #' and the ARMA part is estimated on the differenced data. The first
 #' \code{d + sum(D * S)} observations are therefore not used, which is why the residuals
-#' start with as many \code{NA} values.
+#' and the fitted values start with as many \code{NA} values: these observations have
+#' no differenced value to predict, so no residual is defined for them under the
+#' conditional likelihood.
 #'
 #' Standard errors are computed from the inverse of the observed information matrix
 #' (negative Hessian). If the Hessian is singular, a warning is issued and the standard
@@ -180,6 +190,9 @@ msarima <- function(
         length(seasonal.period)
       ))
     }
+    if (anyDuplicated(seasonal.period)) {
+      stop("'seasonal.period' must not contain duplicated values")
+    }
   }
 
   seasonal_orders <- seasonal
@@ -207,7 +220,6 @@ msarima <- function(
     }
   }
 
-  # Apply differencing
   y_num <- as.numeric(y)
   xx <- y_num
   S_all <- c(1, S_vec)
@@ -239,13 +251,9 @@ msarima <- function(
       ))
     }
     mask <- !is.na(fixed)
-    sigma_fixed <- mask[n_params_total]
-    mask_params <- mask[1:n_params]
   } else {
     fixed <- rep(NA, n_params_total)
     mask <- rep(FALSE, n_params_total)
-    sigma_fixed <- FALSE
-    mask_params <- rep(FALSE, n_params)
   }
 
   all_fixed <- all(mask)
@@ -268,49 +276,19 @@ msarima <- function(
       mu <- 0
     }
 
-    if (sum(order_mat[, 1]) != 0) {
-      ar_comp <- rep(c(1, seasonal.period), order_mat[, 1])
-      ar_beta <- beta[1:length(ar_comp)]
-      ar_beta <- tapply(ar_beta, ar_comp, function(x) x, simplify = FALSE)
-
-      poly_ar <- do.call(
-        prod,
-        mapply(
-          function(x, y) {
-            seq_par <- rep(0, length(y) * x)
-            seq_par[cumsum(rep(x, length(y)))] <- y
-            polynomial(c(1, -seq_par))
-          },
-          x = unique(ar_comp),
-          y = ar_beta,
-          SIMPLIFY = FALSE
-        )
-      )
-    } else {
-      ar_comp <- NULL
-      poly_ar <- polynomial(1)
-    }
-
-    if (sum(order_mat[, 3]) != 0) {
-      ma_comp <- rep(c(1, seasonal.period), order_mat[, 3])
-      ma_beta <- beta[length(ar_comp) + 1:length(ma_comp)]
-      ma_beta <- tapply(ma_beta, ma_comp, function(x) x, simplify = FALSE)
-      poly_ma <- do.call(
-        prod,
-        mapply(
-          function(x, y) {
-            seq_par <- rep(0, length(y) * x)
-            seq_par[cumsum(rep(x, length(y)))] <- y
-            polynomial(c(1, seq_par))
-          },
-          x = unique(ma_comp),
-          y = ma_beta,
-          SIMPLIFY = FALSE
-        )
-      )
-    } else {
-      poly_ma <- polynomial(1)
-    }
+    n_ar <- sum(order_mat[, 1])
+    poly_ar <- build_lag_poly(
+      beta[seq_len(n_ar)],
+      order_mat[, 1],
+      c(1, seasonal.period),
+      -1
+    )
+    poly_ma <- build_lag_poly(
+      beta[n_ar + seq_len(sum(order_mat[, 3]))],
+      order_mat[, 3],
+      c(1, seasonal.period),
+      +1
+    )
 
     if (sum(order_mat[, 2]) != 0) {
       poly_i <- do.call(
@@ -332,9 +310,7 @@ msarima <- function(
       poly_i <- polynomial(1)
     }
 
-    # Construct total polynomials. `xx` has already been differenced, so the
-    # recursion only uses the stationary AR polynomial (poly_i is kept for
-    # reporting / forecasting).
+    # xx is already differenced: only the AR polynomial enters the recursion
     poly <- poly_ar
 
     if (length(poly) > 1) {
@@ -444,50 +420,6 @@ msarima <- function(
   }
 
   if (all_fixed) {
-    var_coef <- matrix(0, nrow = n_params, ncol = n_params)
-  } else if (any(mask_params)) {
-    hess_full <- matrix(0, nrow = n_params_total, ncol = n_params_total)
-    free_idx <- which(!mask)
-    if (length(free_idx) > 0) {
-      hess_free <- fit$hessian[1:length(free_idx), 1:length(free_idx)]
-      hess_full[free_idx, free_idx] <- hess_free
-    }
-    fit$hessian <- hess_full[1:n_params, 1:n_params]
-
-    free_params_idx <- which(!mask_params)
-    if (
-      length(free_params_idx) > 0 &&
-        (any(is.na(fit$hessian[free_params_idx, free_params_idx])) ||
-          det(-fit$hessian[free_params_idx, free_params_idx]) <= 0)
-    ) {
-      warning("Hessian is singular: standard errors are not available")
-      var_coef <- matrix(NA, nrow = n_params, ncol = n_params)
-    } else if (length(free_params_idx) > 0) {
-      j0_free <- (-fit$hessian[free_params_idx, free_params_idx]) / nstar
-      var.coef_free <- solve(j0_free) / nstar
-      var_coef <- matrix(NA, nrow = n_params, ncol = n_params)
-      var_coef[free_params_idx, free_params_idx] <- var.coef_free
-    } else {
-      var_coef <- matrix(NA, nrow = n_params, ncol = n_params)
-    }
-  } else {
-    fit$hessian <- fit$hessian[
-      include.constant - n_params_total,
-      include.constant - n_params_total,
-      drop = FALSE
-    ]
-    if (any(dim(fit$hessian) == 0)) {
-      var_coef <- NULL
-    } else if (any(is.na(fit$hessian)) || det(-fit$hessian) <= 0) {
-      warning("Hessian is singular: standard errors are not available")
-      var_coef <- matrix(NA, nrow = n_params, ncol = n_params)
-    } else {
-      j0 <- (-fit$hessian) / nstar
-      var_coef <- solve(j0) / nstar
-    }
-  }
-
-  if (all_fixed) {
     npar_total <- 0
   } else {
     npar_total <- sum(!mask)
@@ -532,6 +464,27 @@ msarima <- function(
     coef_names <- c(coef_names, "intercept")
   }
 
+  # optim's Hessian covers the free parameters only; sigma is dropped from it
+  # and var_coef is aligned with coef (ARMA + optional intercept), NA if fixed
+  idx_sigma <- n_params + 1
+  coef_idx <- setdiff(seq_len(n_params_total), idx_sigma)
+  free <- which(!mask)
+  keep <- free != idx_sigma
+
+  var_full <- matrix(NA_real_, n_params_total, n_params_total)
+  if (any(keep)) {
+    H <- -fit$hessian[keep, keep, drop = FALSE]
+    if (anyNA(H) || det(H) <= 0) {
+      warning("Hessian is singular: standard errors are not available")
+    } else {
+      var_full[free[keep], free[keep]] <- solve(H)
+    }
+  }
+  var_coef <- if (length(coef_idx)) var_full[coef_idx, coef_idx, drop = FALSE]
+  if (!is.null(var_coef)) {
+    dimnames(var_coef) <- list(coef_names, coef_names)
+  }
+
   resid <- LLO$residuals
   fits <- y_num[(n_diff + 1):n] - resid
 
@@ -545,7 +498,7 @@ msarima <- function(
   }
 
   method_desc <- sprintf(
-    "MSARIMA(%d,%d,%d)",
+    "mSARIMA(%d,%d,%d)",
     order_mat[1, 1],
     order_mat[1, 2],
     order_mat[1, 3]
@@ -580,17 +533,18 @@ msarima <- function(
 
       coef = coef_vec,
       var_coef = var_coef,
-      mask = mask_params,
+      mask = mask[coef_idx],
 
       loglik = loglik_val,
+      npar = npar_total,
       aic = aic,
       bic = bic,
       aicc = aicc,
       sigma2 = sigma2_hat,
 
       x = y,
-      fitted = copy_msts(y, fits),
-      residuals = copy_msts(y, resid),
+      fitted = align_ts(y, fits),
+      residuals = align_ts(y, resid),
 
       method = method_desc,
       series = series,

@@ -1,0 +1,81 @@
+\begin{theindex}
+
+  \item $*$ {\textbf  {datasets}}
+    \subitem \texttt  {MAD\_m40}, \hyperpage{4}
+  \item $*$ {\textbf  {package}}
+    \subitem \texttt  {msarima-package}, \hyperpage{2}
+
+  \indexspace
+
+  \item \texttt  {AIC.msarima} \textit  {(\texttt  {msarima-methods})}, 
+		\hyperpage{7}
+
+  \indexspace
+
+  \item \texttt  {BIC.msarima} \textit  {(\texttt  {msarima-methods})}, 
+		\hyperpage{7}
+
+  \indexspace
+
+  \item \texttt  {coef.msarima} \textit  {(\texttt  {msarima-methods})}, 
+		\hyperpage{7}
+
+  \indexspace
+
+  \item \texttt  {fitted.msarima} \textit  {(\texttt  {msarima-methods})}, 
+		\hyperpage{7}
+  \item \texttt  {forecast.msarima}, \hyperpage{2}
+
+  \indexspace
+
+  \item \texttt  {ggsacf} \textit  {(\texttt  {sacf})}, \hyperpage{13}
+  \item \texttt  {ggspacf} \textit  {(\texttt  {sacf})}, \hyperpage{13}
+
+  \indexspace
+
+  \item \texttt  {logLik.msarima} \textit  {(\texttt  {msarima-methods})}, 
+		\hyperpage{7}
+
+  \indexspace
+
+  \item \texttt  {MAD\_m40}, \hyperpage{4}
+  \item \texttt  {msarima}, \hyperindexformat{\textit}{3, 4}, 
+		\hyperpage{5}, \hyperindexformat{\textit}{9}, 
+		\hyperindexformat{\textit}{11--15}
+  \item \texttt  {msarima-methods}, \hyperpage{7}
+  \item \texttt  {msarima-package}, \hyperpage{2}
+  \item \texttt  {msarima.sim}, \hyperpage{10}, 
+		\hyperindexformat{\textit}{15}
+  \item \texttt  {msportmanteau}, \hyperpage{11}
+
+  \indexspace
+
+  \item \texttt  {optim}, \hyperindexformat{\textit}{6}
+
+  \indexspace
+
+  \item \texttt  {print.msarima} \textit  {(\texttt  {msarima-methods})}, 
+		\hyperpage{7}
+  \item \texttt  {print.summary\_msarima} \textit  {(\texttt  {msarima-methods})}, 
+		\hyperpage{7}
+
+  \indexspace
+
+  \item \texttt  {residuals.msarima} \textit  {(\texttt  {msarima-methods})}, 
+		\hyperpage{7}
+
+  \indexspace
+
+  \item \texttt  {sacf}, \hyperindexformat{\textit}{12}, \hyperpage{13}
+  \item \texttt  {set.seed}, \hyperindexformat{\textit}{15}
+  \item \texttt  {simulate.msarima}, \hyperindexformat{\textit}{3}, 
+		\hyperindexformat{\textit}{11}, \hyperpage{14}
+  \item \texttt  {spacf} \textit  {(\texttt  {sacf})}, \hyperpage{13}
+  \item \texttt  {stats::acf}, \hyperindexformat{\textit}{13, 14}
+  \item \texttt  {stats::Box.test}, \hyperindexformat{\textit}{12}
+  \item \texttt  {stats::na.contiguous}, \hyperindexformat{\textit}{12}, 
+		\hyperindexformat{\textit}{14}
+  \item \texttt  {summary.msarima} \textit  {(\texttt  {msarima-methods})}, 
+		\hyperpage{7}
+
+\end{theindex}

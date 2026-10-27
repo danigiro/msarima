@@ -8,7 +8,9 @@
 #' @param nsim Length of the simulated series. Default is 100.
 #' @param seed Either \code{NULL} or an integer passed to \code{\link[base]{set.seed}}
 #'   before simulating, to make the result reproducible. Default is \code{NULL}.
-#' @param burn Number of burn-in observations to discard. Default is 100.
+#' @param burn Number of burn-in observations to discard. If \code{NULL}, it is set by
+#'   \code{\link{msarima.sim}} to \code{max(100, 2 * kk)}, where \code{kk} is the
+#'   largest lag in the model. Default is \code{NULL}.
 #' @param ... Additional arguments (currently not used).
 #'
 #' @return A time series object (\code{ts} or \code{msts}) of length \code{nsim}, with the
@@ -44,7 +46,7 @@ simulate.msarima <- function(
   object = NULL,
   nsim = 100,
   seed = NULL,
-  burn = 100,
+  burn = NULL,
   ...
 ) {
   if (!is.null(seed)) {
@@ -94,7 +96,8 @@ simulate.msarima <- function(
 #'   order (D), and the seasonal MA order (Q) of one component. Use \code{list()} for a
 #'   model without seasonal components. Default is \code{list()}.
 #' @param seasonal.period A numeric vector of seasonal periods, one for each element of
-#'   \code{seasonal}. Default is \code{NULL}.
+#'   \code{seasonal}. Periods can be given in any order but must be distinct.
+#'   Default is \code{NULL}.
 #' @param ar Numeric vector of AR coefficients, non-seasonal first and then one block per
 #'   seasonal component. Its length must match the total AR order implied by \code{order}
 #'   and \code{seasonal}. Default is \code{NULL}.
@@ -162,6 +165,9 @@ msarima.sim <- function(
         length(seasonal.period)
       ))
     }
+    if (anyDuplicated(seasonal.period)) {
+      stop("'seasonal.period' must not contain duplicated values")
+    }
   }
 
   order_mat <- do.call(rbind, c(list(order), seasonal))
@@ -185,51 +191,9 @@ msarima.sim <- function(
 
   sigma <- sqrt(sigma2)
 
-  # Build AR polynomial
-  if (n_ar > 0) {
-    ar_comp <- rep(S_vec, order_mat[, 1])
-    ar_beta <- tapply(ar, ar_comp, function(x) x, simplify = FALSE)
+  poly_ar <- build_lag_poly(ar, order_mat[, 1], S_vec, -1)
+  poly_ma <- build_lag_poly(ma, order_mat[, 3], S_vec, +1)
 
-    poly_ar <- do.call(
-      prod,
-      mapply(
-        function(x, y) {
-          seq_par <- rep(0, length(y) * x)
-          seq_par[cumsum(rep(x, length(y)))] <- y
-          polynomial(c(1, -seq_par))
-        },
-        x = unique(ar_comp),
-        y = ar_beta,
-        SIMPLIFY = FALSE
-      )
-    )
-  } else {
-    poly_ar <- polynomial(1)
-  }
-
-  # Build MA polynomial
-  if (n_ma > 0) {
-    ma_comp <- rep(S_vec, order_mat[, 3])
-    ma_beta <- tapply(ma, ma_comp, function(x) x, simplify = FALSE)
-
-    poly_ma <- do.call(
-      prod,
-      mapply(
-        function(x, y) {
-          seq_par <- rep(0, length(y) * x)
-          seq_par[cumsum(rep(x, length(y)))] <- y
-          polynomial(c(1, seq_par))
-        },
-        x = unique(ma_comp),
-        y = ma_beta,
-        SIMPLIFY = FALSE
-      )
-    )
-  } else {
-    poly_ma <- polynomial(1)
-  }
-
-  # Build integration polynomial
   if (sum(order_mat[, 2]) > 0) {
     poly_i <- do.call(
       prod,

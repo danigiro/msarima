@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Multi-Seasonal ARIMA Model • msarima</title>
+<title>Multi-Seasonal ARIMA Models • msarima</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -24,9 +24,9 @@
 <link href="deps/Poppins-0.4.10/font.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Multi-Seasonal ARIMA Model">
-<meta name="description" content="Fit, forecast and simulate autoregressive integrated moving average (ARIMA) models with more than one seasonal component, following Lisi and Grigoletto (2025) &lt;doi:10.1002/for.3283&gt;. Series observed at high frequency often display several seasonal cycles at once, such as the daily and the weekly pattern of hourly data, which a single seasonal ARIMA operator cannot represent. Estimation is by conditional maximum likelihood through numerical optimisation, with support for fixed coefficients and a constant term. Seasonal correlograms, forecasts with prediction intervals, and simulation from a model specification or from a fitted model are also provided.">
-<meta property="og:description" content="Fit, forecast and simulate autoregressive integrated moving average (ARIMA) models with more than one seasonal component, following Lisi and Grigoletto (2025) &lt;doi:10.1002/for.3283&gt;. Series observed at high frequency often display several seasonal cycles at once, such as the daily and the weekly pattern of hourly data, which a single seasonal ARIMA operator cannot represent. Estimation is by conditional maximum likelihood through numerical optimisation, with support for fixed coefficients and a constant term. Seasonal correlograms, forecasts with prediction intervals, and simulation from a model specification or from a fitted model are also provided.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Multi-Seasonal ARIMA Models">
+<meta name="description" content="Fit, forecast and simulate autoregressive integrated moving average (ARIMA) models with more than one seasonal component, following Lisi and Grigoletto (2025) &lt;doi:10.1002/for.3283&gt;. Series observed at high frequency often display several seasonal cycles at once, such as the daily and the weekly pattern of hourly data, which a single seasonal ARIMA operator cannot represent. Estimation is performed by conditional maximum likelihood through numerical optimisation, with support for fixed coefficients and a constant term. Multi-seasonal Ljung-Box and Monti portmanteau tests, following Grigoletto and Lisi (2026) &lt;doi:10.48550/arXiv.2609.32381&gt;, seasonal correlograms, forecasts with prediction intervals, and simulation from a model specification or from a fitted model are also provided.">
+<meta property="og:description" content="Fit, forecast and simulate autoregressive integrated moving average (ARIMA) models with more than one seasonal component, following Lisi and Grigoletto (2025) &lt;doi:10.1002/for.3283&gt;. Series observed at high frequency often display several seasonal cycles at once, such as the daily and the weekly pattern of hourly data, which a single seasonal ARIMA operator cannot represent. Estimation is performed by conditional maximum likelihood through numerical optimisation, with support for fixed coefficients and a constant term. Multi-seasonal Ljung-Box and Monti portmanteau tests, following Grigoletto and Lisi (2026) &lt;doi:10.48550/arXiv.2609.32381&gt;, seasonal correlograms, forecasts with prediction intervals, and simulation from a model specification or from a fitted model are also provided.">
 <meta property="og:image" content="https://danigiro.github.io/msarima/logo.svg">
 </head>
 <body>
@@ -37,7 +37,7 @@
 
     <a class="navbar-brand me-2" href="index.html">msarima</a>
 
-    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.0.9006</small>
+    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -67,7 +67,7 @@
 </div>
 <!-- badges: start -->
 
-<p>msarima fits ARIMA models with <strong>more than one seasonal component</strong>. Series observed at high frequency often carry several cycles at once, such as the daily <em>and</em> the weekly pattern of hourly data, while <code><a href="https://rdrr.io/r/stats/arima.html" class="external-link">stats::arima()</a></code> can only take one of them. The package gives each period its own autoregressive, differencing and moving average operator, estimated by conditional maximum likelihood.</p>
+<p>The <code>msarima</code> package fits ARIMA models with <strong>more than one seasonal component</strong>. Series observed at high frequency often carry several cycles at once, such as the daily <em>and</em> the weekly pattern of hourly data, while <code><a href="https://rdrr.io/r/stats/arima.html" class="external-link">stats::arima()</a></code> can only take one of them. The package gives each period its own autoregressive, differencing and moving average operator, estimated by conditional maximum likelihood.</p>
 <ul>
 <li>
 <code><a href="reference/msarima.html">msarima()</a></code> fits the model, with support for fixed coefficients and a constant term.</li>
@@ -77,61 +77,67 @@
 <code><a href="reference/msarima.sim.html">msarima.sim()</a></code> and <code><a href="https://rdrr.io/r/stats/simulate.html" class="external-link">simulate()</a></code> simulate from a specification or from a fit.</li>
 <li>
 <code><a href="reference/sacf.html">sacf()</a></code> and <code><a href="reference/sacf.html">spacf()</a></code> draw correlograms that mark the lags of each cycle (<code><a href="reference/sacf.html">ggsacf()</a></code> and <code><a href="reference/sacf.html">ggspacf()</a></code> for the <code>ggplot2</code> versions).</li>
+<li>
+<code><a href="reference/msportmanteau.html">msportmanteau()</a></code> runs the multi-seasonal Ljung-Box and Monti portmanteau tests on a series or on the residuals of a fit.</li>
 </ul>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
+<p>You can install the stable version from <a href="https://CRAN.R-project.org/package=msarima" class="external-link">CRAN</a>:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"msarima"</span><span class="op">)</span></span></code></pre></div>
+<p>You can install the development version from <a href="https://github.com/danigiro/msarima" class="external-link">GitHub</a>:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"danigiro/msarima"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
-<p><code>MAD_m40</code> is the hourly number of vehicles recorded by a sensor on the M-40 ring road of Madrid between February and May 2024. It is an <code>msts</code> object with periods 24 and 168, so the periods do not have to be repeated in every call.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<p><code>MAD_m40</code> is the hourly number of vehicles recorded by a sensor on the M-40 ring road of Madrid over the eight weeks from 3 February to 29 March 2024. It is an <code>msts</code> object with periods 24 and 168, so the periods do not have to be repeated in every call.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/danigiro/msarima" class="external-link">msarima</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/window.html" class="external-link">window</a></span><span class="op">(</span><span class="va">MAD_m40</span>, end <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>, ylab <span class="op">=</span> <span class="st">"vehicles per hour"</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">"M-40, first four weeks (time in weeks)"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-data-1.png" alt="" width="100%"></p>
 <p>Both the daily cycle and the weekly one (weekends clearly lower) are visible. <code>order</code> sets the non-seasonal part, <code>seasonal</code> takes one <code>c(P, D, Q)</code> per period:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/msarima.html">msarima</a></span><span class="op">(</span><span class="va">MAD_m40</span>,</span>
 <span>               order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">2</span><span class="op">)</span>,</span>
 <span>               seasonal <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">fit</span></span>
 <span><span class="co">#&gt; Series: MAD_m40 </span></span>
-<span><span class="co">#&gt; MSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]</span></span>
+<span><span class="co">#&gt; mSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;    AR(1)    MA(1)    MA(2) SMA(1,1) SMA(2,1) </span></span>
-<span><span class="co">#&gt;   0.8235  -0.0849  -0.0629  -0.7518  -0.8184 </span></span>
+<span><span class="co">#&gt;   0.8847  -0.3737  -0.0906  -0.5603  -0.6836 </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; sigma^2 = 5105.4386  log likelihood = -12933.63</span></span>
-<span><span class="co">#&gt; AIC = 25879.25   AICc = 25879.28   BIC = 25914.69</span></span></code></pre></div>
+<span><span class="co">#&gt; sigma^2 = 4009.7288  log likelihood = -5356.48</span></span>
+<span><span class="co">#&gt; AIC = 10724.97   AICc = 10725.04   BIC = 10755.26</span></span></code></pre></div>
 <p><code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> adds standard errors and significance tests:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Series: MAD_m40 </span></span>
-<span><span class="co">#&gt; MSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]</span></span>
+<span><span class="co">#&gt; mSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;          Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
-<span><span class="co">#&gt; AR(1)     0.82355    0.02055  40.082  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; MA(1)    -0.08489    0.03043  -2.790  0.00527 ** </span></span>
-<span><span class="co">#&gt; MA(2)    -0.06288    0.02893  -2.173  0.02976 *  </span></span>
-<span><span class="co">#&gt; SMA(1,1) -0.75184    0.01762 -42.681  &lt; 2e-16 ***</span></span>
-<span><span class="co">#&gt; SMA(2,1) -0.81843    0.01107 -73.901  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; AR(1)     0.88473    0.02473  35.770   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; MA(1)    -0.37373    0.04060  -9.204   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; MA(2)    -0.09059    0.03805  -2.381   0.0173 *  </span></span>
+<span><span class="co">#&gt; SMA(1,1) -0.56029    0.02700 -20.748   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; SMA(2,1) -0.68362    0.02525 -27.072   &lt;2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; sigma^2 = 5105.4386  log likelihood = -12933.6262</span></span>
-<span><span class="co">#&gt; AIC = 25879.2524   AICc = 25879.2834   BIC = 25914.6850</span></span></code></pre></div>
+<span><span class="co">#&gt; sigma^2 = 4009.7288  log likelihood = -5356.4828</span></span>
+<span><span class="co">#&gt; AIC = 10724.9656   AICc = 10725.0390   BIC = 10755.2612</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="forecasting">Forecasting<a class="anchor" aria-label="anchor" href="#forecasting"></a>
 </h3>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span><span class="va">fit</span>, h <span class="op">=</span> <span class="fl">48</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fc</span>, include <span class="op">=</span> <span class="fl">336</span>, main <span class="op">=</span> <span class="st">"Two days ahead"</span>, ylab <span class="op">=</span> <span class="st">"vehicles per hour"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="reference/figures/README-forecast-1.png" alt="" width="100%"></p>
@@ -139,7 +145,7 @@
 <div class="section level3">
 <h3 id="simulation">Simulation<a class="anchor" aria-label="anchor" href="#simulation"></a>
 </h3>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/msarima.sim.html">msarima.sim</a></span><span class="op">(</span>nsim <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>                 order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
@@ -154,14 +160,14 @@
 <h3 id="fixing-parameters">Fixing parameters<a class="anchor" aria-label="anchor" href="#fixing-parameters"></a>
 </h3>
 <p><code>fixed</code> takes one entry per parameter, <code>NA</code> where the parameter is to be estimated. The order is AR, seasonal AR, MA, seasonal MA, sigma:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit_fixed</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/msarima.html">msarima</a></span><span class="op">(</span><span class="va">MAD_m40</span>,</span>
 <span>                     order <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">2</span><span class="op">)</span>,</span>
 <span>                     seasonal <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                     fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span>, <span class="cn">NA</span>, <span class="op">-</span><span class="fl">0.6</span>, <span class="cn">NA</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>free <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>, fixed <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html" class="external-link">AIC</a></span><span class="op">(</span><span class="va">fit_fixed</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     free    fixed </span></span>
-<span><span class="co">#&gt; 25879.25 25930.09</span></span></code></pre></div>
+<span><span class="co">#&gt; 10724.97 10725.21</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -170,9 +176,10 @@
 <p><code><a href="articles/msarima.html">vignette("msarima")</a></code> walks through the package on <code>MAD_m40</code>, from the correlograms to model choice and forecast evaluation.</p>
 </div>
 <div class="section level2">
-<h2 id="reference">Reference<a class="anchor" aria-label="anchor" href="#reference"></a>
+<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
 <p>Lisi, F. and Grigoletto, M. (2025). Multiple seasonal autoregressive integrated moving average models. <em>Journal of Forecasting</em>, <strong>44</strong>(6), 2037-2052. <a href="https://doi.org/10.1002/for.3283" class="external-link uri">https://doi.org/10.1002/for.3283</a></p>
+<p>Grigoletto, M. and Lisi, F. (2026). Portmanteau goodness-of-fit tests in the presence of simple, mixed, and multiple seasonal autocorrelation. <em>arXiv</em>. <a href="https://doi.org/10.48550/arXiv.2609.32381" class="external-link uri">https://doi.org/10.48550/arXiv.2609.32381</a></p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -203,7 +210,7 @@
 <ul class="list-unstyled">
 <li>Daniele Girolimetto <br><small class="roles"> Author, maintainer, copyright holder </small> <a href="https://orcid.org/0000-0001-9387-1232" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 <li>Francesco Lisi <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0002-8749-8889" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
-<li>Matteo Grigoletto <br><small class="roles"> Author </small>   </li>
+<li>Matteo Grigoletto <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0001-9881-2039" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 

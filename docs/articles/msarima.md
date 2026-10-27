@@ -7,12 +7,13 @@ every 24 hours *and* every 168 hours (a week).
 only one of the two. The `msarima` package fits the multiple seasonal
 model of Lisi and Grigoletto (2025),
 
-\\ \phi(B)\\\Phi_1(B^{S_1})\cdots\Phi_k(B^{S_k})\\ \nabla^d
-\nabla\_{S_1}^{D_1}\cdots\nabla\_{S_k}^{D_k}\\ y_t =
-\theta(B)\\\Theta_1(B^{S_1})\cdots\Theta_k(B^{S_k})\\ e_t , \\
+\\ \phi(B)\\\prod\_{j=1}^{k}\Phi_j\\\left(B^{S_j}\right)\\
+(1-B)^{d}\prod\_{j=1}^{k}\left(1-B^{S_j}\right)^{D_j} y_t = \mu +
+\theta(B)\\\prod\_{j=1}^{k}\Theta_j\\\left(B^{S_j}\right) e_t , \\
 
-with one autoregressive, differencing and moving average operator for
-each seasonal period \\S_1, \dots, S_k\\.
+where \\e_t\\ is white noise with variance \\\sigma^2\\ and \\\mu\\ is a
+constant, with one autoregressive, differencing and moving average
+operator for each seasonal period \\S_1, \dots, S_k\\.
 
 ``` r
 
@@ -22,9 +23,10 @@ library(msarima)
 ## The data
 
 `MAD_m40` is the hourly number of vehicles recorded by a sensor on the
-M-40 ring road of Madrid between February and May 2024. It is an `msts`
-object with seasonal periods 24 and 168 (2904 observations in all), so
-those periods do not have to be repeated in every call.
+M-40 ring road of Madrid over the eight weeks from 3 February to 29
+March 2024. It is an `msts` object with seasonal periods 24 and 168
+(1344 observations in all), so those periods do not have to be repeated
+in every call.
 
 ``` r
 
@@ -33,7 +35,7 @@ head(MAD_m40, 12)
 #> Start: 1 1
 #> Seasonal Periods: 24 168
 #> Data:
-#>  [1]  363  214  175  116  112  103  179  514 1241 1306 1127 1053
+#>  [1] 485 406 411 320 284 245 239 222 265 409 706 845
 
 plot(window(MAD_m40, end = 4), ylab = "vehicles per hour",
      main = "M-40, first four weeks (time in weeks)")
@@ -103,14 +105,14 @@ fit <- msarima(MAD_m40,
                seasonal = list(c(0, 1, 1), c(0, 1, 1)))
 fit
 #> Series: MAD_m40 
-#> MSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]
+#> mSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]
 #> 
 #> Coefficients:
 #>    AR(1)    MA(1)    MA(2) SMA(1,1) SMA(2,1) 
-#>   0.8235  -0.0849  -0.0629  -0.7518  -0.8184 
+#>   0.8847  -0.3737  -0.0906  -0.5603  -0.6836 
 #> 
-#> sigma^2 = 5105.4386  log likelihood = -12933.63
-#> AIC = 25879.25   AICc = 25879.28   BIC = 25914.69
+#> sigma^2 = 4009.7288  log likelihood = -5356.48
+#> AIC = 10724.97   AICc = 10725.04   BIC = 10755.26
 ```
 
 [`summary()`](https://rdrr.io/r/base/summary.html) adds standard errors,
@@ -121,20 +123,20 @@ associated tests:
 
 summary(fit)
 #> Series: MAD_m40 
-#> MSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]
+#> mSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]
 #> 
 #> Coefficients:
 #>          Estimate Std. Error z value Pr(>|z|)    
-#> AR(1)     0.82355    0.02055  40.082  < 2e-16 ***
-#> MA(1)    -0.08489    0.03043  -2.790  0.00527 ** 
-#> MA(2)    -0.06288    0.02893  -2.173  0.02976 *  
-#> SMA(1,1) -0.75184    0.01762 -42.681  < 2e-16 ***
-#> SMA(2,1) -0.81843    0.01107 -73.901  < 2e-16 ***
+#> AR(1)     0.88473    0.02473  35.770   <2e-16 ***
+#> MA(1)    -0.37373    0.04060  -9.204   <2e-16 ***
+#> MA(2)    -0.09059    0.03805  -2.381   0.0173 *  
+#> SMA(1,1) -0.56029    0.02700 -20.748   <2e-16 ***
+#> SMA(2,1) -0.68362    0.02525 -27.072   <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> sigma^2 = 5105.4386  log likelihood = -12933.6262
-#> AIC = 25879.2524   AICc = 25879.2834   BIC = 25914.6850
+#> sigma^2 = 4009.7288  log likelihood = -5356.4828
+#> AIC = 10724.9656   AICc = 10725.0390   BIC = 10755.2612
 ```
 
 [`coef()`](https://rdrr.io/r/stats/coef.html),
@@ -151,7 +153,7 @@ before estimation, so the first \\d + \sum_k D_k S_k\\ residuals are
 
 c(nobs = fit$nobs, n.used = fit$n.used, leading_NA = sum(is.na(residuals(fit))))
 #>       nobs     n.used leading_NA 
-#>       2904       2712        192
+#>       1344       1152        192
 ```
 
 Parameters can be held fixed by supplying `fixed` with one entry per
@@ -166,7 +168,7 @@ fit_fixed <- msarima(MAD_m40,
                      fixed = c(NA, NA, NA, -0.6, NA, NA))
 c(free = AIC(fit), fixed = AIC(fit_fixed))
 #>     free    fixed 
-#> 25879.25 25930.09
+#> 10724.97 10725.21
 ```
 
 ## Checking the residuals
@@ -185,6 +187,30 @@ sacf(fit, lag.max = 200, main = "Residuals")
 ![Correlogram of the residuals up to lag 200. The spikes are much
 smaller than before and mostly inside the confidence
 band.](msarima_files/figure-html/resid-1.png)
+
+[`msportmanteau()`](https://danigiro.github.io/msarima/reference/msportmanteau.md)
+turns this visual check into a formal test, using the multi-seasonal
+portmanteau statistics of Grigoletto and Lisi (2026). With the first 8
+lags and 5 multiples of each period, 18 lags are tested, leaving 13
+degrees of freedom after the 5 estimated coefficients. Neither the
+Ljung-Box nor the Monti version rejects the absence of residual
+autocorrelation:
+
+``` r
+
+msportmanteau(fit, nlag = 5, lags_short = 8)
+#> 
+#>  Multi-seasonal Ljung-Box test
+#> 
+#> data:  MAD_m40
+#> X-squared = 16.19, df = 13, p-value = 0.239
+msportmanteau(fit, type = "Monti", nlag = 5, lags_short = 8)
+#> 
+#>  Multi-seasonal Monti test
+#> 
+#> data:  MAD_m40
+#> X-squared = 11.769, df = 13, p-value = 0.5467
+```
 
 ## Forecasting
 
@@ -232,4 +258,8 @@ y_sim <- simulate(fit, nsim = 168, seed = 1)
 
 Lisi, F. and Grigoletto, M. (2025). Multiple seasonal autoregressive
 integrated moving average models. *Journal of Forecasting*, **44**(6),
-2037–2052.
+2037–2052. <https://doi.org/10.1002/for.3283>
+
+Grigoletto, M. and Lisi, F. (2026). Portmanteau goodness-of-fit tests in
+the presence of simple, mixed, and multiple seasonal autocorrelation.
+*arXiv*. <https://doi.org/10.48550/arXiv.2609.32381>

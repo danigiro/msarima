@@ -18,7 +18,8 @@ msarima(
 \item{y}{A numeric vector or time series object (\code{ts} or \code{msts}) containing
 the data to be modelled. If \code{y} is a \code{ts} object and \code{seasonal.period}
 is not supplied, its frequency is used as the first seasonal period; if \code{y} is
-an \code{msts} object, its seasonal periods are used.}
+an \code{msts} object, its seasonal periods are used. Missing values are not
+allowed.}
 
 \item{order}{A numeric vector of length 3 specifying the non-seasonal part of the
 ARIMA model: the AR order (p), the degree of differencing (d), and the MA order (q).
@@ -33,7 +34,8 @@ order (D), and the seasonal MA order (Q) of one component. For example,
 \item{seasonal.period}{A numeric vector of seasonal periods, one for each element of
 \code{seasonal}, for example \code{c(7, 30)} for weekly and monthly seasonality.
 If \code{NULL}, the periods are taken from \code{y} when it is a \code{ts} or
-\code{msts} object. Default is \code{NULL}.}
+\code{msts} object. Periods can be given in any order but must be distinct.
+Default is \code{NULL}.}
 
 \item{fixed}{A numeric vector with one entry per parameter, used to hold some of them
 at a given value: only the \code{NA} entries are estimated. The parameters are
@@ -44,9 +46,11 @@ that all parameters are estimated.}
 
 \item{include.constant}{Should the model include a constant term? The constant is the
 intercept of the model equation, not the mean of the series: for a stationary model
-the two are related by \code{mean = intercept / prod(1 - ar)}. A constant cannot be
-combined with differencing and is dropped, with a warning, when \code{d} or any
-\code{D} is non-zero. Default is \code{FALSE}.}
+the two are related by \eqn{\mu = c / \phi(1)}, where \eqn{c} is the intercept and
+\eqn{\phi(1)} is the full AR polynomial (seasonal components included) evaluated
+at 1. For example, for an AR(1) model \eqn{\mu = c / (1 - \phi_1)}. A constant
+cannot be combined with differencing and is dropped, with a warning, when \code{d}
+or any \code{D} is non-zero. Default is \code{FALSE}.}
 
 \item{optim_control}{A list of control parameters passed to \code{\link[stats]{optim}}.
 Default is \code{list(maxit = 200)}.}
@@ -54,12 +58,15 @@ Default is \code{list(maxit = 200)}.}
 \value{
 An object of class \code{"msarima"}, which is a list containing:
 \item{order}{The non-seasonal ARIMA order (p, d, q).}
-\item{seasonal}{List of seasonal component specifications.}
+\item{seasonal}{List of seasonal orders (P, D, Q), one vector per seasonal component.}
 \item{seasonal.period}{Vector of seasonal periods.}
 \item{coef}{Named vector of estimated coefficients: the AR, SAR, MA and SMA
 parameters, followed by the intercept if \code{include.constant = TRUE}.}
-\item{var_coef}{Variance-covariance matrix of the coefficient estimates.}
-\item{mask}{Logical vector indicating which parameters were fixed.}
+\item{var_coef}{Variance-covariance matrix of the coefficient estimates, with
+the same dimension and order as \code{coef}. Rows and columns of fixed
+parameters are \code{NA}.}
+\item{mask}{Logical vector with the same length and order as \code{coef},
+\code{TRUE} for fixed parameters.}
 \item{loglik}{Log-likelihood of the fitted model.}
 \item{aic}{Akaike Information Criterion.}
 \item{bic}{Bayesian Information Criterion.}
@@ -69,8 +76,9 @@ parameters, followed by the intercept if \code{include.constant = TRUE}.}
 \item{fitted}{One-step-ahead fitted values, on the scale of the original series.}
 \item{residuals}{Model residuals. Together with \code{fitted}, the first
 \code{d + sum(D * S)} values are \code{NA}, since differencing leaves no
-observation to predict there.}
-\item{method}{Description of the fitted model.}
+observations to predict for them.}
+\item{method}{Character string describing the fitted model, e.g.
+\code{"mSARIMA(1,0,0)(1,0,0)[4]"}.}
 \item{series}{Name of the series.}
 \item{nobs}{Number of observations in the original series.}
 \item{n.used}{Number of observations used in estimation (after differencing).}
@@ -91,7 +99,9 @@ recursively and the resulting Gaussian log-likelihood is maximised numerically w
 When \code{d} or any \code{D} is non-zero, the series is differenced before estimation
 and the ARMA part is estimated on the differenced data. The first
 \code{d + sum(D * S)} observations are therefore not used, which is why the residuals
-start with as many \code{NA} values.
+and the fitted values start with as many \code{NA} values: these observations have
+no differenced value to predict, so no residual is defined for them under the
+conditional likelihood.
 
 Standard errors are computed from the inverse of the observed information matrix
 (negative Hessian). If the Hessian is singular, a warning is issued and the standard

@@ -43,7 +43,7 @@ future innovations to zero. Differencing and the constant term, when present, ar
 taken from the fitted model, so the forecasts are on the scale of the original
 series.
 
-Prediction intervals assume normally distributed innovations. The forecast variance
+Prediction intervals assume Gaussian innovations. The forecast variance
 \eqn{V_h} is obtained from the MA(\eqn{\infty}) representation of the model.
 }
 \examples{

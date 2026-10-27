@@ -1,0 +1,897 @@
+\nonstopmode{}
+\documentclass[a4paper]{book}
+\usepackage[times,inconsolata,hyper]{Rd}
+\usepackage{makeidx}
+\makeatletter\@ifl@t@r\fmtversion{2018/04/01}{}{\usepackage[utf8]{inputenc}}\makeatother
+% \usepackage{graphicx} % @USE GRAPHICX@
+\makeindex{}
+\begin{document}
+\chapter*{}
+\begin{center}
+{\textbf{\huge Package `msarima'}}
+\par\bigskip{\large \today}
+\end{center}
+\ifthenelse{\boolean{Rd@use@hyper}}{\hypersetup{pdftitle = {msarima: Multi-Seasonal ARIMA Models}}}{}
+\ifthenelse{\boolean{Rd@use@hyper}}{\hypersetup{pdfauthor = {Daniele Girolimetto; Francesco Lisi; Matteo Grigoletto}}}{}
+\begin{description}
+\raggedright{}
+\item[Title]\AsIs{Multi-Seasonal ARIMA Models}
+\item[Version]\AsIs{0.1.0}
+\item[Description]\AsIs{Fit, forecast and simulate autoregressive integrated moving
+average (ARIMA) models with more than one seasonal component, following
+Lisi and Grigoletto (2025) <}\Rhref{https://doi.org/10.1002/for.3283}{doi:10.1002/for.3283}\AsIs{>. Series observed at high
+frequency often display several seasonal cycles at once, such as the daily
+and the weekly pattern of hourly data, which a single seasonal ARIMA
+operator cannot represent. Estimation is performed by conditional maximum
+likelihood through numerical optimisation, with support for fixed
+coefficients and a constant term. Multi-seasonal Ljung-Box and Monti
+portmanteau tests, following Grigoletto and Lisi (2026)
+<}\Rhref{https://doi.org/10.48550/arXiv.2609.32381}{doi:10.48550/arXiv.2609.32381}\AsIs{>, seasonal correlograms, forecasts with
+prediction intervals, and simulation from a model specification or from a
+fitted model are also provided.}
+\item[License]\AsIs{GPL-3}
+\item[Encoding]\AsIs{UTF-8}
+\item[Roxygen]\AsIs{list(markdown = TRUE)}
+\item[RoxygenNote]\AsIs{7.3.3}
+\item[Depends]\AsIs{R (>= 4.1.0),
+forecast}
+\item[Imports]\AsIs{polynom,
+stats}
+\item[Suggests]\AsIs{ggplot2,
+knitr,
+rmarkdown,
+testthat (>= 3.0.0)}
+\item[VignetteBuilder]\AsIs{knitr}
+\item[Config/testthat/edition]\AsIs{3}
+\item[URL]\AsIs{}\url{https://github.com/danigiro/msarima}\AsIs{, }\url{https://danigiro.github.io/msarima}\AsIs{}
+\item[BugReports]\AsIs{}\url{https://github.com/danigiro/msarima/issues}\AsIs{}
+\item[LazyData]\AsIs{true}
+\end{description}
+\Rdcontents{Contents}
+\HeaderA{msarima-package}{msarima: Multi-Seasonal ARIMA Models}{msarima.Rdash.package}
+\keyword{package}{msarima-package}
+%
+\begin{Description}
+Fit, forecast and simulate autoregressive integrated moving average (ARIMA) models with more than one seasonal component, following Lisi and Grigoletto (2025) \Rhref{https://doi.org/10.1002/for.3283}{doi:10.1002\slash{}for.3283}. Series observed at high frequency often display several seasonal cycles at once, such as the daily and the weekly pattern of hourly data, which a single seasonal ARIMA operator cannot represent. Estimation is performed by conditional maximum likelihood through numerical optimisation, with support for fixed coefficients and a constant term. Multi-seasonal Ljung-Box and Monti portmanteau tests, following Grigoletto and Lisi (2026) \Rhref{https://doi.org/10.48550/arXiv.2609.32381}{doi:10.48550\slash{}arXiv.2609.32381}, seasonal correlograms, forecasts with prediction intervals, and simulation from a model specification or from a fitted model are also provided.
+\end{Description}
+%
+\begin{Author}
+\strong{Maintainer}: Daniele Girolimetto \email{daniele.girolimetto@unipd.it} (\Rhref{https://orcid.org/0000-0001-9387-1232}{ORCID}) [copyright holder]
+
+Authors:
+\begin{itemize}
+
+\item{} Francesco Lisi \email{francesco.lisi@unipd.it} (\Rhref{https://orcid.org/0000-0002-8749-8889}{ORCID})
+\item{} Matteo Grigoletto \email{matteo.grigoletto@unipd.it} (\Rhref{https://orcid.org/0000-0001-9881-2039}{ORCID})
+
+\end{itemize}
+
+
+\end{Author}
+%
+\begin{SeeAlso}
+Useful links:
+\begin{itemize}
+
+\item{} \url{https://github.com/danigiro/msarima}
+\item{} \url{https://danigiro.github.io/msarima}
+\item{} Report bugs at \url{https://github.com/danigiro/msarima/issues}
+
+\end{itemize}
+
+
+\end{SeeAlso}
+\HeaderA{forecast.msarima}{Forecast from a Multi-Seasonal ARIMA Model}{forecast.msarima}
+%
+\begin{Description}
+Returns forecasts and prediction intervals for a fitted multi-seasonal ARIMA model.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+## S3 method for class 'msarima'
+forecast(object, h = 10, level = c(80, 95), fan = FALSE, ...)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{object}] An object of class \code{"msarima"}.
+
+\item[\code{h}] Number of periods to forecast. Default is 10.
+
+\item[\code{level}] Confidence levels for the prediction intervals, in percent.
+Default is \code{c(80, 95)}.
+
+\item[\code{fan}] If \code{TRUE}, \code{level} is set to \code{seq(51, 99, by = 3)},
+which is suitable for fan plots. Default is \code{FALSE}.
+
+\item[\code{...}] Additional arguments (currently not used).
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+Point forecasts are computed by running the model recursion forward, setting the
+future innovations to zero. Differencing and the constant term, when present, are
+taken from the fitted model, so the forecasts are on the scale of the original
+series.
+
+Prediction intervals assume Gaussian innovations. The forecast variance
+\eqn{V_h}{} is obtained from the MA(\eqn{\infty}{}) representation of the model.
+\end{Details}
+%
+\begin{Value}
+An object of class \code{"forecast"} containing the following elements:
+\begin{ldescription}
+\item[\code{method}] The name of the forecasting method (same as \code{object\$method}).
+\item[\code{model}] The fitted \code{"msarima"} model object.
+\item[\code{level}] The confidence levels for prediction intervals (as percentages).
+\item[\code{mean}] Point forecasts as a time series (ts or msts object).
+\item[\code{lower}] Lower limits for prediction intervals. Matrix with one column for each
+confidence level specified in \code{level}.
+\item[\code{upper}] Upper limits for prediction intervals. Matrix with one column for each
+confidence level specified in \code{level}.
+\item[\code{x}] The original time series.
+\item[\code{series}] The name of the series.
+\item[\code{fitted}] Fitted values from the model.
+\item[\code{residuals}] Residuals from the model.
+\end{ldescription}
+\end{Value}
+%
+\begin{SeeAlso}
+\code{\LinkA{msarima}{msarima}}, \code{\LinkA{simulate.msarima}{simulate.msarima}}
+\end{SeeAlso}
+%
+\begin{Examples}
+\begin{ExampleCode}
+# Simulate and fit model
+set.seed(123)
+y <- msarima.sim(nsim = 200,
+                 order = c(1, 0, 0),
+                 seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+                 seasonal.period = c(4, 11),
+                 ar = c(0.5, 0.5), ma = 0.3, sigma2 = 1)
+
+fit <- msarima(y, order = c(1, 0, 0),
+               seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+               seasonal.period = c(4, 11))
+
+# Forecast 20 steps ahead with default confidence levels (80%, 95%)
+fc <- forecast(fit, h = 20)
+print(fc)
+
+# Forecast with custom prediction intervals
+fc2 <- forecast(fit, h = 20, level = c(90, 95, 99))
+
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{MAD\_m40}{Hourly Traffic Volume on the M-40 Ring Road, Madrid}{MAD.Rul.m40}
+\keyword{datasets}{MAD\_m40}
+%
+\begin{Description}
+Number of vehicles per hour recorded by a single traffic sensor on the M-40, the
+outer ring road of Madrid, over the eight weeks from 3 February to 29 March 2024.
+
+The series shows the two seasonal patterns that \code{\LinkA{msarima}{msarima}} is meant for:
+a daily cycle of period 24, with the morning and evening commuting peaks, and a
+weekly cycle of period 168, with markedly lower volumes at the weekend.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+MAD_m40
+\end{verbatim}
+\end{Usage}
+%
+\begin{Format}
+An \code{msts} object of length 1344 (56 days, or eight complete weeks, of hourly
+data) with seasonal periods 24 and 168. The first observation is midnight of
+Saturday 3 February 2024 and the last is 11 p.m. of Friday 29 March 2024.
+\end{Format}
+%
+\begin{Details}
+The raw measurements are half-hourly counts from sensor 3753, recorded between
+1 February and 31 May 2024 and summed in pairs to obtain hourly volumes; the eight
+weeks kept here are the window studied by Grigoletto and Lisi (2026), who chose this
+sensor for having the fewest missing observations in the network. A few of the
+underlying half-hourly counts had been interpolated by the provider, so 3 of the
+hourly values are not whole numbers. There are no missing values and no gaps in the
+hourly grid.
+
+The script that builds the object from the raw file is available at
+\url{https://github.com/danigiro/msarima/blob/main/data-raw/MAD_m40.R}.
+\end{Details}
+%
+\begin{Source}
+Madrid City Council open data portal, \url{https://datos.madrid.es}.
+\end{Source}
+%
+\begin{References}
+Grigoletto, M. and Lisi, F. (2026). Portmanteau goodness-of-fit tests in the
+presence of simple, mixed, and multiple seasonal autocorrelation. \emph{arXiv}.
+\Rhref{https://doi.org/10.48550/arXiv.2609.32381}{doi:10.48550\slash{}arXiv.2609.32381}
+\end{References}
+%
+\begin{Examples}
+\begin{ExampleCode}
+# The daily and weekly cycles
+plot(window(MAD_m40, end = 4), ylab = "vehicles per hour")
+
+# A multi-seasonal ARIMA with one daily and one weekly difference
+
+fit <- msarima(MAD_m40,
+               order = c(1, 0, 2),
+               seasonal = list(c(0, 1, 1), c(0, 1, 1)))
+summary(fit)
+plot(forecast(fit, h = 48))
+
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{msarima}{Fit a Multi-Seasonal ARIMA Model}{msarima}
+%
+\begin{Description}
+Fits an ARIMA model with one or more seasonal components to a univariate time series.
+This function extends the standard ARIMA framework to time series with several
+seasonal patterns, such as daily and weekly seasonality in hourly data, or weekly
+and yearly seasonality in daily data.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+msarima(
+  y,
+  order = c(0, 0, 0),
+  seasonal = list(),
+  seasonal.period = NULL,
+  fixed = NULL,
+  include.constant = FALSE,
+  optim_control = list(maxit = 200)
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{y}] A numeric vector or time series object (\code{ts} or \code{msts}) containing
+the data to be modelled. If \code{y} is a \code{ts} object and \code{seasonal.period}
+is not supplied, its frequency is used as the first seasonal period; if \code{y} is
+an \code{msts} object, its seasonal periods are used. Missing values are not
+allowed.
+
+\item[\code{order}] A numeric vector of length 3 specifying the non-seasonal part of the
+ARIMA model: the AR order (p), the degree of differencing (d), and the MA order (q).
+Default is \code{c(0, 0, 0)}.
+
+\item[\code{seasonal}] A list of numeric vectors, each of length 3, specifying the seasonal
+components. Each vector gives the seasonal AR order (P), the seasonal differencing
+order (D), and the seasonal MA order (Q) of one component. For example,
+\code{list(c(1, 0, 1), c(0, 1, 1))} specifies two seasonal components. Use
+\code{list()} for a model without seasonal components. Default is \code{list()}.
+
+\item[\code{seasonal.period}] A numeric vector of seasonal periods, one for each element of
+\code{seasonal}, for example \code{c(7, 30)} for weekly and monthly seasonality.
+If \code{NULL}, the periods are taken from \code{y} when it is a \code{ts} or
+\code{msts} object. Periods can be given in any order but must be distinct.
+Default is \code{NULL}.
+
+\item[\code{fixed}] A numeric vector with one entry per parameter, used to hold some of them
+at a given value: only the \code{NA} entries are estimated. The parameters are
+ordered as non-seasonal AR, seasonal AR (one block per seasonal component),
+non-seasonal MA, seasonal MA (one block per seasonal component), sigma, and the
+constant term when \code{include.constant = TRUE}. Default is \code{NULL}, meaning
+that all parameters are estimated.
+
+\item[\code{include.constant}] Should the model include a constant term? The constant is the
+intercept of the model equation, not the mean of the series: for a stationary model
+the two are related by \eqn{\mu = c / \phi(1)}{}, where \eqn{c}{} is the intercept and
+\eqn{\phi(1)}{} is the full AR polynomial (seasonal components included) evaluated
+at 1. For example, for an AR(1) model \eqn{\mu = c / (1 - \phi_1)}{}. A constant
+cannot be combined with differencing and is dropped, with a warning, when \code{d}
+or any \code{D} is non-zero. Default is \code{FALSE}.
+
+\item[\code{optim\_control}] A list of control parameters passed to \code{\LinkA{optim}{optim}}.
+Default is \code{list(maxit = 200)}.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+The model is estimated by conditional maximum likelihood: the residuals are computed
+recursively and the resulting Gaussian log-likelihood is maximised numerically with
+\code{\LinkA{optim}{optim}}, using the BFGS algorithm.
+
+When \code{d} or any \code{D} is non-zero, the series is differenced before estimation
+and the ARMA part is estimated on the differenced data. The first
+\code{d + sum(D * S)} observations are therefore not used, which is why the residuals
+and the fitted values start with as many \code{NA} values: these observations have
+no differenced value to predict, so no residual is defined for them under the
+conditional likelihood.
+
+Standard errors are computed from the inverse of the observed information matrix
+(negative Hessian). If the Hessian is singular, a warning is issued and the standard
+errors are set to \code{NA}.
+\end{Details}
+%
+\begin{Value}
+An object of class \code{"msarima"}, which is a list containing:
+\begin{ldescription}
+\item[\code{order}] The non-seasonal ARIMA order (p, d, q).
+\item[\code{seasonal}] List of seasonal orders (P, D, Q), one vector per seasonal component.
+\item[\code{seasonal.period}] Vector of seasonal periods.
+\item[\code{coef}] Named vector of estimated coefficients: the AR, SAR, MA and SMA
+parameters, followed by the intercept if \code{include.constant = TRUE}.
+\item[\code{var\_coef}] Variance-covariance matrix of the coefficient estimates, with
+the same dimension and order as \code{coef}. Rows and columns of fixed
+parameters are \code{NA}.
+\item[\code{mask}] Logical vector with the same length and order as \code{coef},
+\code{TRUE} for fixed parameters.
+\item[\code{loglik}] Log-likelihood of the fitted model.
+\item[\code{aic}] Akaike Information Criterion.
+\item[\code{bic}] Bayesian Information Criterion.
+\item[\code{aicc}] Corrected Akaike Information Criterion.
+\item[\code{sigma2}] Estimated innovation variance.
+\item[\code{x}] The original time series.
+\item[\code{fitted}] One-step-ahead fitted values, on the scale of the original series.
+\item[\code{residuals}] Model residuals. Together with \code{fitted}, the first
+\code{d + sum(D * S)} values are \code{NA}, since differencing leaves no
+observations to predict for them.
+\item[\code{method}] Character string describing the fitted model, e.g.
+\code{"mSARIMA(1,0,0)(1,0,0)[4]"}.
+\item[\code{series}] Name of the series.
+\item[\code{nobs}] Number of observations in the original series.
+\item[\code{n.used}] Number of observations used in estimation (after differencing).
+\item[\code{call}] The matched call.
+\item[\code{convergence}] Convergence code from \code{optim} (0 indicates successful convergence).
+\end{ldescription}
+\end{Value}
+%
+\begin{Note}
+\begin{itemize}
+
+\item{} The series must have at least 10 observations, both before and after differencing.
+\item{} Seasonal periods must be at least 2 and at most half the length of the series.
+\item{} If \code{y} is a \code{ts} or \code{msts} object, \code{x}, \code{fitted} and
+\code{residuals} keep the same time series structure. If \code{y} is a plain numeric
+vector, they are returned as \code{ts} with one seasonal period, or as \code{msts}
+with several.
+
+\end{itemize}
+
+\end{Note}
+%
+\begin{Examples}
+\begin{ExampleCode}
+# Example 1: ARIMA with two seasonal components
+set.seed(123)
+y <- msarima.sim(nsim = 200,
+                 order = c(1, 0, 0),
+                 seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+                 seasonal.period = c(4, 11),
+                 ar = c(0.5, 0.5), ma = 0.3, sigma2 = 1)
+
+fit <- msarima(y, order = c(1, 0, 0),
+               seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+               seasonal.period = c(4, 11))
+print(fit)
+summary(fit)
+
+# Example 2: msts input, seasonal periods detected automatically
+y_msts <- msts(y, seasonal.periods = c(4, 11))
+fit_msts <- msarima(y_msts, order = c(1, 0, 0),
+                    seasonal = list(c(1, 0, 0), c(0, 0, 1)))
+
+# Example 3: differencing
+fit_diff <- msarima(cumsum(y), order = c(1, 1, 0),
+                    seasonal = list(c(0, 0, 1)),
+                    seasonal.period = 4)
+head(residuals(fit_diff))  # the first residual is NA
+
+# Example 4: fixing parameters
+# Note: the length of 'fixed' must match AR + SAR + MA + SMA + sigma
+fit_fixed <- msarima(y, order = c(1, 0, 0),
+                     seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+                     seasonal.period = c(4, 11),
+                     fixed = c(0.5, NA, NA, NA))
+AIC(fit); AIC(fit_fixed)
+
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{msarima-methods}{Methods for msarima Objects}{msarima.Rdash.methods}
+\aliasA{AIC.msarima}{msarima-methods}{AIC.msarima}
+\aliasA{BIC.msarima}{msarima-methods}{BIC.msarima}
+\aliasA{coef.msarima}{msarima-methods}{coef.msarima}
+\aliasA{fitted.msarima}{msarima-methods}{fitted.msarima}
+\aliasA{logLik.msarima}{msarima-methods}{logLik.msarima}
+\aliasA{print.msarima}{msarima-methods}{print.msarima}
+\aliasA{print.summary\_msarima}{msarima-methods}{print.summary.Rul.msarima}
+\aliasA{residuals.msarima}{msarima-methods}{residuals.msarima}
+\aliasA{summary.msarima}{msarima-methods}{summary.msarima}
+%
+\begin{Description}
+Methods for extracting information from and displaying fitted multi-seasonal ARIMA models.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+## S3 method for class 'msarima'
+print(x, ...)
+
+## S3 method for class 'msarima'
+summary(object, ...)
+
+## S3 method for class 'summary_msarima'
+print(x, digits = 4, signif.stars = TRUE, ...)
+
+## S3 method for class 'msarima'
+coef(object, ...)
+
+## S3 method for class 'msarima'
+fitted(object, ...)
+
+## S3 method for class 'msarima'
+residuals(object, ...)
+
+## S3 method for class 'msarima'
+logLik(object, ...)
+
+## S3 method for class 'msarima'
+AIC(object, ...)
+
+## S3 method for class 'msarima'
+BIC(object, ...)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{x}, \code{object}] An object of class \code{"msarima"}.
+
+\item[\code{...}] Additional arguments (currently not used).
+
+\item[\code{digits}] Number of digits to display. Default is 4.
+
+\item[\code{signif.stars}] Logical; if \code{TRUE}, significance stars are printed. Default is \code{TRUE}.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+\begin{description}
+
+\item[\code{print}] Prints a concise summary of the fitted model including coefficients
+and information criteria.
+\item[\code{summary}] Produces a detailed summary including coefficient estimates,
+standard errors, z-values, and p-values.
+\item[\code{coef}] Extracts the estimated model coefficients.
+\item[\code{fitted}] Extracts the fitted values.
+\item[\code{residuals}] Extracts the model residuals.
+\item[\code{logLik}] Extracts the log-likelihood value.
+\item[\code{AIC}] Calculates the Akaike Information Criterion.
+\item[\code{BIC}] Calculates the Bayesian Information Criterion.
+
+\end{description}
+
+\end{Details}
+%
+\begin{Value}
+\begin{description}
+
+\item[\code{print}] Returns the input object invisibly.
+\item[\code{summary}] Returns an object of class \code{"summary\_msarima"} containing:
+\begin{itemize}
+
+\item{} \code{call}: The matched call.
+\item{} \code{series}: Name of the time series.
+\item{} \code{order}: Non-seasonal ARIMA order.
+\item{} \code{seasonal}: List of seasonal orders (P, D, Q), one vector per
+seasonal component.
+\item{} \code{seasonal.period}: Vector of seasonal periods.
+\item{} \code{coefficients}: Matrix with estimates, standard errors, z-values, and p-values.
+\item{} \code{sigma2}: Estimated innovation variance.
+\item{} \code{loglik}: Log-likelihood of the fitted model.
+\item{} \code{aic}: Akaike Information Criterion.
+\item{} \code{bic}: Bayesian Information Criterion.
+\item{} \code{aicc}: Corrected Akaike Information Criterion.
+\item{} \code{nobs}: Number of observations in the original series.
+\item{} \code{n.used}: Number of observations used in estimation.
+\item{} \code{method}: Character string describing the fitted model, e.g.
+\code{"mSARIMA(1,0,0)(1,0,0)[4]"}.
+\item{} \code{convergence}: Convergence code from optimization.
+
+\end{itemize}
+
+
+\item[\code{coef}] A named numeric vector of coefficients.
+\item[\code{fitted}] A time series object of fitted values.
+\item[\code{residuals}] A time series object of residuals.
+\item[\code{logLik}] An object of class \code{"logLik"}.
+\item[\code{AIC}] The AIC value.
+\item[\code{BIC}] The BIC value.
+
+\end{description}
+
+\end{Value}
+%
+\begin{SeeAlso}
+\code{\LinkA{msarima}{msarima}}
+\end{SeeAlso}
+%
+\begin{Examples}
+\begin{ExampleCode}
+# Fit a model
+set.seed(123)
+y <- msarima.sim(nsim = 200,
+                 order = c(1, 0, 0),
+                 seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+                 seasonal.period = c(4, 11),
+                 ar = c(0.5, 0.5), ma = 0.3, sigma2 = 1)
+
+fit <- msarima(y, order = c(1, 0, 0),
+               seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+               seasonal.period = c(4, 11))
+
+# Use methods
+print(fit)
+summary(fit)
+coef(fit)
+head(fitted(fit))
+head(residuals(fit))
+logLik(fit)
+AIC(fit)
+BIC(fit)
+
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{msarima.sim}{Simulate from a Multi-Seasonal ARIMA Model (Direct Interface)}{msarima.sim}
+%
+\begin{Description}
+Simulates a time series from a multi-seasonal ARIMA model with specified parameters.
+This function provides a direct interface for simulation without requiring a fitted model object.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+msarima.sim(
+  nsim,
+  order = c(0, 0, 0),
+  seasonal = list(),
+  seasonal.period = NULL,
+  ar = NULL,
+  ma = NULL,
+  sigma2 = 1,
+  burn = NULL,
+  intercept = 0
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{nsim}] Length of the simulated series (required).
+
+\item[\code{order}] A numeric vector of length 3 specifying the non-seasonal part of the
+ARIMA model: the AR order (p), the degree of differencing (d), and the MA order (q).
+Default is \code{c(0, 0, 0)}.
+
+\item[\code{seasonal}] A list of numeric vectors, each of length 3, specifying the seasonal
+components. Each vector gives the seasonal AR order (P), the seasonal differencing
+order (D), and the seasonal MA order (Q) of one component. Use \code{list()} for a
+model without seasonal components. Default is \code{list()}.
+
+\item[\code{seasonal.period}] A numeric vector of seasonal periods, one for each element of
+\code{seasonal}. Periods can be given in any order but must be distinct.
+Default is \code{NULL}.
+
+\item[\code{ar}] Numeric vector of AR coefficients, non-seasonal first and then one block per
+seasonal component. Its length must match the total AR order implied by \code{order}
+and \code{seasonal}. Default is \code{NULL}.
+
+\item[\code{ma}] Numeric vector of MA coefficients, ordered as \code{ar}. Its length must match
+the total MA order implied by \code{order} and \code{seasonal}. Default is \code{NULL}.
+
+\item[\code{sigma2}] Innovation variance. Default is 1.
+
+\item[\code{burn}] Number of burn-in observations to discard. If \code{NULL}, it is set to
+\code{max(100, 2 * kk)}, where \code{kk} is the largest lag in the model.
+Default is \code{NULL}.
+
+\item[\code{intercept}] Constant term of the model equation, that is \eqn{\mu}{} in
+\eqn{y_t = \mu + \sum \phi_i y_{t-i} + \sum \theta_j e_{t-j} + e_t}{}. This is the
+intercept, not the mean of the process: for a stationary model the mean is
+\code{intercept / prod(1 - ar)}. Default is 0.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Value}
+A time series object of length \code{nsim}: \code{ts} with one seasonal period,
+\code{msts} with several.
+\end{Value}
+%
+\begin{SeeAlso}
+\code{\LinkA{msarima}{msarima}}, \code{\LinkA{simulate.msarima}{simulate.msarima}}
+\end{SeeAlso}
+%
+\begin{Examples}
+\begin{ExampleCode}
+# Simulate data
+set.seed(123)
+y <- msarima.sim(nsim = 200,
+                 order = c(1, 0, 0),
+                 seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+                 seasonal.period = c(4, 11),
+                 ar = c(0.5, 0.5), ma = 0.3, sigma2 = 1)
+
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{msportmanteau}{Multi-Seasonal Portmanteau Tests}{msportmanteau}
+%
+\begin{Description}
+Multi-seasonal generalisation of the Ljung-Box and Monti portmanteau tests:
+residual autocorrelation is checked at low-order and seasonal lags at once,
+for an arbitrary number of seasonal periods.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+msportmanteau(
+  x,
+  type = c("Ljung-Box", "Monti"),
+  season = NULL,
+  nlag = 5,
+  lags_short = 0,
+  npar = NULL
+)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{x}] A numeric vector, a \code{ts}/\code{msts} object, or a fitted \LinkA{msarima}{msarima} model
+(in which case the model residuals are used).
+
+\item[\code{type}] Either \code{"Ljung-Box"} (default), which builds the statistic from
+the autocorrelations, or \code{"Monti"}, which uses the partial
+autocorrelations. Partial matching is allowed.
+
+\item[\code{season}] Numeric vector of seasonal periods to test, of any length. If
+\code{NULL} (default) the periods are taken from the \code{msts}/\code{ts} attributes of
+\code{x}, or from the fitted model.
+
+\item[\code{nlag}] Numeric vector giving the number of seasonal multiples of each
+period to test, i.e. lags \code{season * (1:nlag)}. A single value is recycled across
+\code{season}; otherwise give one value per period, e.g. \code{c(5, 3)}. Default \code{5}.
+
+\item[\code{lags\_short}] Number of low-order, non-seasonal lags \code{1:lags\_short} added
+to the seasonal ones. Default \code{0} (none).
+
+\item[\code{npar}] Number of estimated model parameters. Default \code{0} for a raw
+series; for a fitted \LinkA{msarima}{msarima} model it defaults to the number of estimated
+(non-fixed) AR, seasonal AR, MA and seasonal MA coefficients.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+The lag set tested is \code{sort(unique(c(1:lags\_short, outer(season, 1:nlag))))},
+the same construction as in the original two-season versions of these
+tests, generalised to any number of periods.
+
+As in \LinkA{sacf}{sacf}, leading and trailing \code{NA}s (such as those produced by
+differencing in \LinkA{msarima}{msarima}) are dropped (\LinkA{stats::na.contiguous}{stats::na.contiguous}) before
+computing the statistic, and the number of observations used is the length
+of the series that remains.
+\end{Details}
+%
+\begin{Value}
+An object of class \code{"htest"}, with:
+\begin{ldescription}
+\item[\code{statistic}] the test statistic ("X-squared").
+\item[\code{parameter}] the degrees of freedom ("df"), the number of lags tested
+minus \code{npar}.
+\item[\code{p.value}] the p-value, from the upper tail of a chi-squared
+distribution with \code{parameter} degrees of freedom.
+\item[\code{method}] a character string describing the test.
+\item[\code{data.name}] a character string naming the data.
+\item[\code{lag}] the lags actually tested.
+\end{ldescription}
+\end{Value}
+%
+\begin{References}
+Grigoletto, M. and Lisi, F. (2026). Portmanteau goodness-of-fit tests in the
+presence of simple, mixed, and multiple seasonal autocorrelation. \emph{arXiv}.
+\Rhref{https://doi.org/10.48550/arXiv.2609.32381}{doi:10.48550\slash{}arXiv.2609.32381}
+
+Ljung, G. M. and Box, G. E. P. (1978). On a measure of lack of fit in time
+series models. \emph{Biometrika}, 65(2), 297-303.
+
+Monti, A. C. (1994). A proposal for a residual autocorrelation test in
+linear models. \emph{Biometrika}, 81(4), 776-780.
+\end{References}
+%
+\begin{SeeAlso}
+\LinkA{sacf}{sacf}, \LinkA{msarima}{msarima}, \LinkA{stats::Box.test}{stats::Box.test}
+\end{SeeAlso}
+%
+\begin{Examples}
+\begin{ExampleCode}
+fit <- msarima(MAD_m40, order = c(1, 0, 2),
+               seasonal = list(c(0, 1, 1), c(0, 1, 1)))
+
+# periods 24 and 168 taken from the msts object
+msportmanteau(MAD_m40, nlag = 3)
+# residual test, periods and npar from the model
+msportmanteau(fit, type = "Monti", nlag = 3)
+
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{sacf}{Autocorrelation Plots for Multiple Seasonal Cycles}{sacf}
+\aliasA{ggsacf}{sacf}{ggsacf}
+\aliasA{ggspacf}{sacf}{ggspacf}
+\aliasA{spacf}{sacf}{spacf}
+%
+\begin{Description}
+Sample autocorrelation (\code{sacf}) and partial autocorrelation (\code{spacf}) functions
+that highlight the lags belonging to one or more seasonal cycles, so that the
+seasonal structure of a multi-seasonal series is visible at a glance.
+\code{ggsacf()} and \code{ggspacf()} are the \pkg{ggplot2} equivalents.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+sacf(
+  x,
+  season = NULL,
+  lag.max = NULL,
+  ci = 0.95,
+  col = NULL,
+  main = NULL,
+  ylab = "ACF",
+  plot = TRUE,
+  ...
+)
+
+spacf(x, ..., ylab = "PACF")
+
+ggsacf(
+  x,
+  season = NULL,
+  lag.max = NULL,
+  ci = 0.95,
+  main = NULL,
+  ylab = "ACF",
+  ...
+)
+
+ggspacf(x, ..., ylab = "PACF")
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{x}] A numeric vector, a \code{ts}/\code{msts} object, or a fitted \LinkA{msarima}{msarima} model
+(in which case the model residuals are used).
+
+\item[\code{season}] Numeric vector of seasonal periods to highlight, of any length.
+If \code{NULL} (default) the periods are taken from the \code{msts}/\code{ts} attributes of
+\code{x}, or from the fitted model.
+
+\item[\code{lag.max}] Maximum lag. Defaults to \code{3 * max(season)}, or to the
+\LinkA{stats::acf}{stats::acf} default when no seasonal period is available.
+
+\item[\code{ci}] Coverage of the confidence bands, as a probability. Default \code{0.95}.
+
+\item[\code{col}] Colours used for the seasonal lags, one per element of \code{season}
+(recycled). Defaults to a colour-blind safe palette (Okabe and Ito, 2008),
+the same one used by \code{ggsacf()} and \code{ggspacf()}.
+
+\item[\code{main}, \code{ylab}] Plot title and y-axis label.
+
+\item[\code{plot}] If \code{TRUE} (default) the correlogram is drawn.
+
+\item[\code{...}] Further arguments passed to \LinkA{stats::acf}{stats::acf}, and from \code{spacf()} and
+\code{ggspacf()} to \code{sacf()} and \code{ggsacf()}.
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+Lags that are multiples of more than one period (lag 168 with
+\code{season = c(24, 168)}, say) are attributed to the longest matching period.
+
+The series is treated as a plain numeric vector, so lags are always reported in
+number of observations and not in units of time. Leading and trailing \code{NA}s,
+such as those produced by differencing in \LinkA{msarima}{msarima}, are dropped
+(\LinkA{stats::na.contiguous}{stats::na.contiguous}).
+\end{Details}
+%
+\begin{Value}
+\code{sacf()} and \code{spacf()} invisibly return the \LinkA{stats::acf}{stats::acf} object, with
+the seasonal periods in the \code{"season"} attribute and, for each lag, the index
+of the period it belongs to in \code{"season.group"}. \code{ggsacf()} and \code{ggspacf()}
+return a \code{ggplot} object.
+\end{Value}
+%
+\begin{References}
+Okabe, M. and Ito, K. (2008). Color Universal Design (CUD): How to make figures
+and presentations that are friendly to colorblind people.
+\url{https://jfly.uni-koeln.de/color/}
+\end{References}
+%
+\begin{SeeAlso}
+\LinkA{stats::acf}{stats::acf}, \LinkA{msarima}{msarima}
+\end{SeeAlso}
+%
+\begin{Examples}
+\begin{ExampleCode}
+fit <- msarima(MAD_m40, order = c(1, 0, 2),
+               seasonal = list(c(0, 1, 1), c(0, 1, 1)))
+
+sacf(MAD_m40, lag.max = 200)   # periods 24 and 168 taken from the msts object
+spacf(fit)                     # residual pacf, periods taken from the model
+
+\end{ExampleCode}
+\end{Examples}
+\HeaderA{simulate.msarima}{Simulate from a Multi-Seasonal ARIMA Model}{simulate.msarima}
+%
+\begin{Description}
+Returns a simulated time series from a fitted ARIMA model with one or more seasonal
+components.
+\end{Description}
+%
+\begin{Usage}
+\begin{verbatim}
+## S3 method for class 'msarima'
+simulate(object = NULL, nsim = 100, seed = NULL, burn = NULL, ...)
+\end{verbatim}
+\end{Usage}
+%
+\begin{Arguments}
+\begin{ldescription}
+\item[\code{object}] An object of class \code{"msarima"}.
+
+\item[\code{nsim}] Length of the simulated series. Default is 100.
+
+\item[\code{seed}] Either \code{NULL} or an integer passed to \code{\LinkA{set.seed}{set.seed}}
+before simulating, to make the result reproducible. Default is \code{NULL}.
+
+\item[\code{burn}] Number of burn-in observations to discard. If \code{NULL}, it is set by
+\code{\LinkA{msarima.sim}{msarima.sim}} to \code{max(100, 2 * kk)}, where \code{kk} is the
+largest lag in the model. Default is \code{NULL}.
+
+\item[\code{...}] Additional arguments (currently not used).
+\end{ldescription}
+\end{Arguments}
+%
+\begin{Details}
+The model specification and the estimated parameters, including the constant term when
+the model was fitted with \code{include.constant = TRUE}, are extracted from the fitted
+object and passed to \code{\LinkA{msarima.sim}{msarima.sim}}.
+\end{Details}
+%
+\begin{Value}
+A time series object (\code{ts} or \code{msts}) of length \code{nsim}, with the
+seasonal periods of the fitted model.
+\end{Value}
+%
+\begin{SeeAlso}
+\code{\LinkA{msarima}{msarima}}, \code{\LinkA{msarima.sim}{msarima.sim}}
+\end{SeeAlso}
+%
+\begin{Examples}
+\begin{ExampleCode}
+# Simulate data
+set.seed(123)
+y <- msarima.sim(nsim = 200,
+                 order = c(1, 0, 0),
+                 seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+                 seasonal.period = c(4, 11),
+                 ar = c(0.5, 0.5), ma = 0.3, sigma2 = 1)
+
+# Fit model
+fit <- msarima(y, order = c(1, 0, 0),
+               seasonal = list(c(1, 0, 0), c(0, 0, 1)),
+               seasonal.period = c(4, 11))
+
+# Simulate from fitted model
+y_sim <- simulate(fit, nsim = 100)
+
+\end{ExampleCode}
+\end{Examples}
+\printindex{}
+\end{document}

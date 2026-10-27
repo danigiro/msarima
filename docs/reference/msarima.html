@@ -19,7 +19,7 @@ and yearly seasonality in daily data."><meta property="og:image" content="https:
 
     <a class="navbar-brand me-2" href="../index.html">msarima</a>
 
-    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.0.9006</small>
+    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -72,7 +72,8 @@ and yearly seasonality in daily data.</p>
 <dd><p>A numeric vector or time series object (<code>ts</code> or <code>msts</code>) containing
 the data to be modelled. If <code>y</code> is a <code>ts</code> object and <code>seasonal.period</code>
 is not supplied, its frequency is used as the first seasonal period; if <code>y</code> is
-an <code>msts</code> object, its seasonal periods are used.</p></dd>
+an <code>msts</code> object, its seasonal periods are used. Missing values are not
+allowed.</p></dd>
 
 
 <dt id="arg-order">order<a class="anchor" aria-label="anchor" href="#arg-order"></a></dt>
@@ -93,7 +94,8 @@ order (D), and the seasonal MA order (Q) of one component. For example,
 <dd><p>A numeric vector of seasonal periods, one for each element of
 <code>seasonal</code>, for example <code>c(7, 30)</code> for weekly and monthly seasonality.
 If <code>NULL</code>, the periods are taken from <code>y</code> when it is a <code>ts</code> or
-<code>msts</code> object. Default is <code>NULL</code>.</p></dd>
+<code>msts</code> object. Periods can be given in any order but must be distinct.
+Default is <code>NULL</code>.</p></dd>
 
 
 <dt id="arg-fixed">fixed<a class="anchor" aria-label="anchor" href="#arg-fixed"></a></dt>
@@ -108,9 +110,11 @@ that all parameters are estimated.</p></dd>
 <dt id="arg-include-constant">include.constant<a class="anchor" aria-label="anchor" href="#arg-include-constant"></a></dt>
 <dd><p>Should the model include a constant term? The constant is the
 intercept of the model equation, not the mean of the series: for a stationary model
-the two are related by <code>mean = intercept / prod(1 - ar)</code>. A constant cannot be
-combined with differencing and is dropped, with a warning, when <code>d</code> or any
-<code>D</code> is non-zero. Default is <code>FALSE</code>.</p></dd>
+the two are related by \(\mu = c / \phi(1)\), where \(c\) is the intercept and
+\(\phi(1)\) is the full AR polynomial (seasonal components included) evaluated
+at 1. For example, for an AR(1) model \(\mu = c / (1 - \phi_1)\). A constant
+cannot be combined with differencing and is dropped, with a warning, when <code>d</code>
+or any <code>D</code> is non-zero. Default is <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-optim-control">optim_control<a class="anchor" aria-label="anchor" href="#arg-optim-control"></a></dt>
@@ -125,7 +129,7 @@ Default is <code>list(maxit = 200)</code>.</p></dd>
 <dd><p>The non-seasonal ARIMA order (p, d, q).</p></dd>
 
 <dt>seasonal</dt>
-<dd><p>List of seasonal component specifications.</p></dd>
+<dd><p>List of seasonal orders (P, D, Q), one vector per seasonal component.</p></dd>
 
 <dt>seasonal.period</dt>
 <dd><p>Vector of seasonal periods.</p></dd>
@@ -135,10 +139,13 @@ Default is <code>list(maxit = 200)</code>.</p></dd>
 parameters, followed by the intercept if <code>include.constant = TRUE</code>.</p></dd>
 
 <dt>var_coef</dt>
-<dd><p>Variance-covariance matrix of the coefficient estimates.</p></dd>
+<dd><p>Variance-covariance matrix of the coefficient estimates, with
+the same dimension and order as <code>coef</code>. Rows and columns of fixed
+parameters are <code>NA</code>.</p></dd>
 
 <dt>mask</dt>
-<dd><p>Logical vector indicating which parameters were fixed.</p></dd>
+<dd><p>Logical vector with the same length and order as <code>coef</code>,
+<code>TRUE</code> for fixed parameters.</p></dd>
 
 <dt>loglik</dt>
 <dd><p>Log-likelihood of the fitted model.</p></dd>
@@ -164,10 +171,11 @@ parameters, followed by the intercept if <code>include.constant = TRUE</code>.</
 <dt>residuals</dt>
 <dd><p>Model residuals. Together with <code>fitted</code>, the first
 <code>d + sum(D * S)</code> values are <code>NA</code>, since differencing leaves no
-observation to predict there.</p></dd>
+observations to predict for them.</p></dd>
 
 <dt>method</dt>
-<dd><p>Description of the fitted model.</p></dd>
+<dd><p>Character string describing the fitted model, e.g.
+<code>"mSARIMA(1,0,0)(1,0,0)[4]"</code>.</p></dd>
 
 <dt>series</dt>
 <dd><p>Name of the series.</p></dd>
@@ -193,7 +201,9 @@ recursively and the resulting Gaussian log-likelihood is maximised numerically w
 <p>When <code>d</code> or any <code>D</code> is non-zero, the series is differenced before estimation
 and the ARMA part is estimated on the differenced data. The first
 <code>d + sum(D * S)</code> observations are therefore not used, which is why the residuals
-start with as many <code>NA</code> values.</p>
+and the fitted values start with as many <code>NA</code> values: these observations have
+no differenced value to predict, so no residual is defined for them under the
+conditional likelihood.</p>
 <p>Standard errors are computed from the inverse of the observed information matrix
 (negative Hessian). If the Hessian is singular, a warning is issued and the standard
 errors are set to <code>NA</code>.</p>
@@ -224,7 +234,7 @@ with several.</p></li>
 <span class="r-in"><span>               seasonal.period <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">11</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Series: y </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> MSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    AR(1) SAR(1,1) SMA(2,1) </span>
@@ -234,7 +244,7 @@ with several.</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> AIC = 192.88   AICc = 193.08   BIC = 206.07</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Series: y </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> MSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          Estimate Std. Error z value Pr(&gt;|z|)    </span>

@@ -41,7 +41,7 @@ test_that("the fitted object has the documented structure", {
   )
 
   expect_s3_class(fit, "msarima")
-  expect_equal(fit$method, "MSARIMA(1,0,1)(0,0,1)[4]")
+  expect_equal(fit$method, "mSARIMA(1,0,1)(0,0,1)[4]")
   expect_equal(fit$order, c(1, 0, 1))
   expect_equal(fit$seasonal.period, 4)
   expect_equal(fit$series, "y")
@@ -63,7 +63,7 @@ test_that("coefficients are named and ordered AR, SAR, MA, SMA", {
     coef(fit),
     c("AR(1)", "AR(2)", "SAR(1,1)", "MA(1)", "SMA(1,1)", "SMA(2,1)")
   )
-  expect_equal(fit$method, "MSARIMA(2,0,1)(1,0,1)[4](0,0,1)[12]")
+  expect_equal(fit$method, "mSARIMA(2,0,1)(1,0,1)[4](0,0,1)[12]")
 })
 
 test_that("seasonal orders >= 2 get one coefficient per seasonal lag", {
@@ -83,7 +83,7 @@ test_that("the model can be fitted without any seasonal component", {
   fit <- msarima(y, order = c(1, 0, 1), seasonal = list())
 
   expect_named(coef(fit), c("AR(1)", "MA(1)"))
-  expect_equal(fit$method, "MSARIMA(1,0,1)")
+  expect_equal(fit$method, "mSARIMA(1,0,1)")
 })
 
 test_that("known parameters are recovered on a long series", {

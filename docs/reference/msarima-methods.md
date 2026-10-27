@@ -68,7 +68,8 @@ BIC(object, ...)
 
   - `order`: Non-seasonal ARIMA order.
 
-  - `seasonal`: List of seasonal component specifications.
+  - `seasonal`: List of seasonal orders (P, D, Q), one vector per
+    seasonal component.
 
   - `seasonal.period`: Vector of seasonal periods.
 
@@ -89,7 +90,8 @@ BIC(object, ...)
 
   - `n.used`: Number of observations used in estimation.
 
-  - `method`: Description of the fitted model.
+  - `method`: Character string describing the fitted model, e.g.
+    `"mSARIMA(1,0,0)(1,0,0)[4]"`.
 
   - `convergence`: Convergence code from optimization.
 
@@ -175,7 +177,7 @@ fit <- msarima(y, order = c(1, 0, 0),
 # Use methods
 print(fit)
 #> Series: y 
-#> MSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]
+#> mSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]
 #> 
 #> Coefficients:
 #>    AR(1) SAR(1,1) SMA(2,1) 
@@ -185,7 +187,7 @@ print(fit)
 #> AIC = 192.88   AICc = 193.08   BIC = 206.07
 summary(fit)
 #> Series: y 
-#> MSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]
+#> mSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]
 #> 
 #> Coefficients:
 #>          Estimate Std. Error z value Pr(>|z|)    

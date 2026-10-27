@@ -75,8 +75,7 @@ test_that("forecasts of a differenced model are integrated back to levels", {
 })
 
 test_that("the intercept is used in the point forecasts", {
-  # Regression test: the intercept was estimated but never read by
-  # forecast.msarima(), so forecasts decayed to 0 instead of to the mean.
+  # forecasts converge to the process mean, not to 0
   set.seed(11)
   y <- 100 + as.numeric(msarima.sim(
     nsim = 300,
@@ -103,8 +102,6 @@ test_that("the intercept is used in the point forecasts", {
 })
 
 test_that("seasonal AR coefficients of order 2 act on lags S and 2S", {
-  # Regression test: forecast.msarima() used to build the seasonal polynomial
-  # with the coefficients at lags S, S + 1, ... instead of S, 2S, ...
   y <- sim_arma(n = 200)
   fit <- msarima(
     y,
@@ -121,8 +118,6 @@ test_that("seasonal AR coefficients of order 2 act on lags S and 2S", {
 })
 
 test_that("seasonal differencing of order 2 is applied to the right lags", {
-  # Regression test: the integration polynomial in forecast.msarima() ignored
-  # D, so D = 2 was treated as D = 1.
   y <- cumsum(cumsum(sim_arma(n = 200)))
   fit <- msarima(
     y,
@@ -137,4 +132,26 @@ test_that("seasonal differencing of order 2 is applied to the right lags", {
   fc <- forecast(fit, h = 1)
   expect_false(is.na(as.numeric(fc$mean)))
   expect_equal(fit$n.used, length(y) - 8)
+})
+
+test_that("one-step prediction intervals are correct for differenced models", {
+  y <- sim_int()
+  fit <- msarima(
+    y,
+    order = c(1, 1, 1),
+    seasonal = list(c(0, 0, 1)),
+    seasonal.period = 4
+  )
+
+  fc1 <- forecast(fit, h = 1)
+  fc5 <- forecast(fit, h = 5)
+
+  # the one-step forecast variance is sigma2
+  qq <- qnorm(0.5 + fc1$level[1] / 200)
+  implied <- ((fc1$upper[1, 1] - fc1$mean[1]) / qq)^2
+  expect_equal(as.numeric(implied), fit$sigma2)
+
+  # the h = 1 interval matches the first row of a longer forecast
+  expect_equal(as.numeric(fc1$lower), as.numeric(fc5$lower[1, ]))
+  expect_equal(as.numeric(fc1$upper), as.numeric(fc5$upper[1, ]))
 })

@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">msarima</a>
 
-    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.0.9006</small>
+    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -102,7 +102,8 @@
 <dd><p>Returns an object of class <code>"summary_msarima"</code> containing:</p><ul><li><p><code>call</code>: The matched call.</p></li>
 <li><p><code>series</code>: Name of the time series.</p></li>
 <li><p><code>order</code>: Non-seasonal ARIMA order.</p></li>
-<li><p><code>seasonal</code>: List of seasonal component specifications.</p></li>
+<li><p><code>seasonal</code>: List of seasonal orders (P, D, Q), one vector per
+seasonal component.</p></li>
 <li><p><code>seasonal.period</code>: Vector of seasonal periods.</p></li>
 <li><p><code>coefficients</code>: Matrix with estimates, standard errors, z-values, and p-values.</p></li>
 <li><p><code>sigma2</code>: Estimated innovation variance.</p></li>
@@ -112,7 +113,8 @@
 <li><p><code>aicc</code>: Corrected Akaike Information Criterion.</p></li>
 <li><p><code>nobs</code>: Number of observations in the original series.</p></li>
 <li><p><code>n.used</code>: Number of observations used in estimation.</p></li>
-<li><p><code>method</code>: Description of the fitted model.</p></li>
+<li><p><code>method</code>: Character string describing the fitted model, e.g.
+<code>"mSARIMA(1,0,0)(1,0,0)[4]"</code>.</p></li>
 <li><p><code>convergence</code>: Convergence code from optimization.</p></li>
 </ul></dd>
 
@@ -189,7 +191,7 @@ standard errors, z-values, and p-values.</p></dd>
 <span class="r-in"><span><span class="co"># Use methods</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Series: y </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> MSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    AR(1) SAR(1,1) SMA(2,1) </span>
@@ -199,7 +201,7 @@ standard errors, z-values, and p-values.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> AIC = 192.88   AICc = 193.08   BIC = 206.07</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Series: y </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> MSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mSARIMA(1,0,0)(1,0,0)[4](0,0,1)[11]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          Estimate Std. Error z value Pr(&gt;|z|)    </span>

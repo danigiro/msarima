@@ -8,21 +8,22 @@
 - **Francesco Lisi**. Author. [](https://orcid.org/0000-0002-8749-8889)
 
 - **Matteo Grigoletto**. Author.
+  [](https://orcid.org/0000-0001-9881-2039)
 
 ## Citation
 
 Source:
 [`inst/CITATION`](https://github.com/danigiro/msarima/blob/HEAD/inst/CITATION)
 
-Girolimetto D, Lisi F, Grigoletto M (2025). *msarima: Multi-Seasonal
-ARIMA Models*. R package version 0.0.0.9006,
+Girolimetto D, Lisi F, Grigoletto M (2026). *msarima: Multi-Seasonal
+ARIMA Models*. R package version 0.1.0,
 <https://github.com/danigiro/msarima>.
 
     @Manual{,
       title = {{msarima}: Multi-Seasonal ARIMA Models},
       author = {Daniele Girolimetto and Francesco Lisi and Matteo Grigoletto},
-      year = {2025},
-      note = {R package version 0.0.0.9006},
+      year = {2026},
+      note = {R package version 0.1.0},
       url = {https://github.com/danigiro/msarima},
     }
 

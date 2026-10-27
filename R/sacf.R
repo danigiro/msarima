@@ -36,6 +36,11 @@
 #'   of the period it belongs to in `"season.group"`. `ggsacf()` and `ggspacf()`
 #'   return a `ggplot` object.
 #'
+#' @references
+#' Okabe, M. and Ito, K. (2008). Color Universal Design (CUD): How to make figures
+#' and presentations that are friendly to colorblind people.
+#' \url{https://jfly.uni-koeln.de/color/}
+#'
 #' @examples
 #' fit <- msarima(MAD_m40, order = c(1, 0, 2),
 #'                seasonal = list(c(0, 1, 1), c(0, 1, 1)))
@@ -47,38 +52,74 @@
 #'
 #' @name sacf
 #' @export
-sacf <- function(x, season = NULL, lag.max = NULL, ci = 0.95, col = NULL,
-                 main = NULL, ylab = "ACF", plot = TRUE, ...) {
+sacf <- function(
+  x,
+  season = NULL,
+  lag.max = NULL,
+  ci = 0.95,
+  col = NULL,
+  main = NULL,
+  ylab = "ACF",
+  plot = TRUE,
+  ...
+) {
   if (inherits(x, "msarima")) {
-    if (is.null(season)) season <- x$seasonal.period
+    if (is.null(season)) {
+      season <- x$seasonal.period
+    }
     x <- x$residuals
   } else if (is.null(season)) {
-    season <- if (inherits(x, "msts")) attr(x, "msts") else if (is.ts(x)) frequency(x)
+    season <- if (inherits(x, "msts")) {
+      attr(x, "msts")
+    } else if (is.ts(x)) {
+      frequency(x)
+    }
   }
   season <- sort(unique(season[!is.na(season) & season > 1]))
 
   x <- as.numeric(x)
   if (is.null(lag.max)) {
-    lag.max <- if (length(season) > 0) 3 * max(season) else 10 * log10(length(x))
+    lag.max <- if (length(season) > 0) {
+      3 * max(season)
+    } else {
+      10 * log10(length(x))
+    }
   }
-  cc <- stats::acf(x, lag.max = lag.max, plot = FALSE,
-                   na.action = stats::na.contiguous, ...)
+  cc <- stats::acf(
+    x,
+    lag.max = lag.max,
+    plot = FALSE,
+    na.action = stats::na.contiguous,
+    ...
+  )
 
   # For each lag, the period it belongs to: the longest one, since `season` is sorted
   lag <- drop(cc$lag)
   group <- rep(NA_integer_, length(lag))
-  for (i in seq_along(season)) group[lag > 0 & lag %% season[i] == 0] <- i
+  for (i in seq_along(season)) {
+    group[lag > 0 & lag %% season[i] == 0] <- i
+  }
   attr(cc, "season") <- season
   attr(cc, "season.group") <- group
 
   if (plot) {
     val <- drop(cc$acf)
     clim <- qnorm((1 + ci) / 2) / sqrt(cc$n.used)
-    plot(lag, val, type = "h", lwd = 1.2, xlab = "Lag", ylab = ylab, main = main,
-         ylim = range(val, clim, -clim))
+    plot(
+      lag,
+      val,
+      type = "h",
+      lwd = 1.2,
+      xlab = "Lag",
+      ylab = ylab,
+      main = main,
+      ylim = range(val, clim, -clim)
+    )
     abline(h = 0)
     abline(h = c(-clim, clim), col = "grey40", lty = 2)
-    if (is.null(col)) col <- c("#E69F00", "#0072B2", "#009E73", "#D55E00", "#CC79A7")
+    if (is.null(col)) {
+      col <- c("#E69F00", "#0072B2", "#009E73", "#D55E00", "#CC79A7")
+    }
     col <- rep_len(col, max(length(season), 1L))
     for (i in seq_along(season)) {
       k <- which(group == i)
@@ -97,8 +138,15 @@ spacf <- function(x, ..., ylab = "PACF") {
 
 #' @rdname sacf
 #' @export
-ggsacf <- function(x, season = NULL, lag.max = NULL, ci = 0.95,
-                   main = NULL, ylab = "ACF", ...) {
+ggsacf <- function(
+  x,
+  season = NULL,
+  lag.max = NULL,
+  ci = 0.95,
+  main = NULL,
+  ylab = "ACF",
+  ...
+) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Package 'ggplot2' is needed for this function")
   }
@@ -114,12 +162,20 @@ ggsacf <- function(x, season = NULL, lag.max = NULL, ci = 0.95,
   dfs <- df[!is.na(df$season), , drop = FALSE]
   ggplot2::ggplot(df, ggplot2::aes(x = lag, y = acf)) +
     ggplot2::geom_hline(yintercept = 0) +
-    ggplot2::geom_hline(yintercept = c(-clim, clim), colour = "grey40", linetype = 2) +
+    ggplot2::geom_hline(
+      yintercept = c(-clim, clim),
+      colour = "grey40",
+      linetype = 2
+    ) +
     ggplot2::geom_segment(ggplot2::aes(xend = lag, yend = 0)) +
-    ggplot2::geom_segment(data = dfs, ggplot2::aes(xend = lag, yend = 0, colour = season)) +
+    ggplot2::geom_segment(
+      data = dfs,
+      ggplot2::aes(xend = lag, yend = 0, colour = season)
+    ) +
     ggplot2::geom_point(data = dfs, ggplot2::aes(colour = season), size = 1.5) +
     ggplot2::scale_colour_manual(
-      values = c("#E69F00", "#0072B2", "#009E73", "#D55E00", "#CC79A7")) +
+      values = c("#E69F00", "#0072B2", "#009E73", "#D55E00", "#CC79A7")
+    ) +
     ggplot2::labs(x = "Lag", y = ylab, title = main, colour = "Period")
 }
 

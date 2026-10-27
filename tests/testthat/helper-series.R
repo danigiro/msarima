@@ -1,6 +1,4 @@
-# Small simulated series shared across test files. Kept short and with small
-# seasonal periods so that the whole suite stays fast: the CSS recursion in
-# msarima() is O(n * max(k_ar, k_ma)) and pure R.
+# Small simulated series shared across test files
 
 # Stationary SARMA(1,0,1)(0,0,1)[4]
 sim_arma <- function(n = 150, seed = 101) {

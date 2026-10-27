@@ -6,11 +6,11 @@
     }
   };
 </script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet"><script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/Inter-0.4.10/font.css" rel="stylesheet"><link href="../deps/JetBrains_Mono-0.4.10/font.css" rel="stylesheet"><link href="../deps/Poppins-0.4.10/font.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet"><link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet"><script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Hourly Traffic Volume on the M-40 Ring Road, Madrid — MAD_m40"><meta name="description" content="Number of vehicles per hour recorded by a single traffic sensor on the M-40, the
-outer ring road of Madrid, from 1 February to 31 May 2024.
+outer ring road of Madrid, over the eight weeks from 3 February to 29 March 2024.
 The series shows the two seasonal patterns that msarima is meant for:
 a daily cycle of period 24, with the morning and evening commuting peaks, and a
 weekly cycle of period 168, with markedly lower volumes at the weekend."><meta property="og:description" content="Number of vehicles per hour recorded by a single traffic sensor on the M-40, the
-outer ring road of Madrid, from 1 February to 31 May 2024.
+outer ring road of Madrid, over the eight weeks from 3 February to 29 March 2024.
 The series shows the two seasonal patterns that msarima is meant for:
 a daily cycle of period 24, with the morning and evening commuting peaks, and a
 weekly cycle of period 168, with markedly lower volumes at the weekend."><meta property="og:image" content="https://danigiro.github.io/msarima/logo.svg"></head><body>
@@ -21,7 +21,7 @@ weekly cycle of period 168, with markedly lower volumes at the weekend."><meta p
 
     <a class="navbar-brand me-2" href="../index.html">msarima</a>
 
-    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.0.9006</small>
+    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,7 +48,7 @@ weekly cycle of period 168, with markedly lower volumes at the weekend."><meta p
 
     <div class="ref-description section level2">
     <p>Number of vehicles per hour recorded by a single traffic sensor on the M-40, the
-outer ring road of Madrid, from 1 February to 31 May 2024.</p>
+outer ring road of Madrid, over the eight weeks from 3 February to 29 March 2024.</p>
 <p>The series shows the two seasonal patterns that <code><a href="msarima.html">msarima</a></code> is meant for:
 a daily cycle of period 24, with the morning and evening commuting peaks, and a
 weekly cycle of period 168, with markedly lower volumes at the weekend.</p>
@@ -61,9 +61,9 @@ weekly cycle of period 168, with markedly lower volumes at the weekend.</p>
 
     <div class="section level2">
     <h2 id="format">Format<a class="anchor" aria-label="anchor" href="#format"></a></h2>
-    <p>An <code>msts</code> object of length 2904 (121 days of hourly data) with seasonal periods
-24 and 168. The first observation is midnight of Thursday 1 February 2024 and the
-last is 11 p.m. of Friday 31 May 2024.</p>
+    <p>An <code>msts</code> object of length 1344 (56 days, or eight complete weeks, of hourly
+data) with seasonal periods 24 and 168. The first observation is midnight of
+Saturday 3 February 2024 and the last is 11 p.m. of Friday 29 March 2024.</p>
     </div>
     <div class="section level2">
     <h2 id="source">Source<a class="anchor" aria-label="anchor" href="#source"></a></h2>
@@ -71,12 +71,21 @@ last is 11 p.m. of Friday 31 May 2024.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The raw measurements are half-hourly counts from sensor 3753, which were summed in
-pairs to obtain hourly volumes. A few of the underlying half-hourly counts had been
-interpolated by the provider, so 18 of the hourly values are not whole numbers.
-There are no missing values and no gaps in the hourly grid: the clock-change weekend
-of March 2024 is recorded as a regular sequence of hours.</p>
-<p>The script that builds the object from the raw file is in <code>data-raw/MAD_m40.R</code>.</p>
+    <p>The raw measurements are half-hourly counts from sensor 3753, recorded between
+1 February and 31 May 2024 and summed in pairs to obtain hourly volumes; the eight
+weeks kept here are the window studied by Grigoletto and Lisi (2026), who chose this
+sensor for having the fewest missing observations in the network. A few of the
+underlying half-hourly counts had been interpolated by the provider, so 3 of the
+hourly values are not whole numbers. There are no missing values and no gaps in the
+hourly grid.</p>
+<p>The script that builds the object from the raw file is available at
+<a href="https://github.com/danigiro/msarima/blob/main/data-raw/MAD_m40.R" class="external-link">https://github.com/danigiro/msarima/blob/main/data-raw/MAD_m40.R</a>.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
+    <p>Grigoletto, M. and Lisi, F. (2026). Portmanteau goodness-of-fit tests in the
+presence of simple, mixed, and multiple seasonal autocorrelation. <em>arXiv</em>.
+<a href="https://doi.org/10.48550/arXiv.2609.32381" class="external-link">doi:10.48550/arXiv.2609.32381</a></p>
     </div>
 
     <div class="section level2">
@@ -92,20 +101,20 @@ of March 2024 is recorded as a regular sequence of hours.</p>
 <span class="r-in"><span>               seasonal <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Series: MAD_m40 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> MSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> mSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Coefficients:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>          Estimate Std. Error z value Pr(&gt;|z|)    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> AR(1)     0.82355    0.02055  40.082  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> MA(1)    -0.08489    0.03043  -2.790  0.00527 ** </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> MA(2)    -0.06288    0.02893  -2.173  0.02976 *  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> SMA(1,1) -0.75184    0.01762 -42.681  &lt; 2e-16 ***</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> SMA(2,1) -0.81843    0.01107 -73.901  &lt; 2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> AR(1)     0.88473    0.02473  35.770   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> MA(1)    -0.37373    0.04060  -9.204   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> MA(2)    -0.09059    0.03805  -2.381   0.0173 *  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> SMA(1,1) -0.56029    0.02700 -20.748   &lt;2e-16 ***</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> SMA(2,1) -0.68362    0.02525 -27.072   &lt;2e-16 ***</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> sigma^2 = 5105.4386  log likelihood = -12933.6262</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> AIC = 25879.2524   AICc = 25879.2834   BIC = 25914.6850</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> sigma^2 = 4009.7288  log likelihood = -5356.4828</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> AIC = 10724.9656   AICc = 10725.0390   BIC = 10755.2612</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="https://generics.r-lib.org/reference/forecast.html" class="external-link">forecast</a></span><span class="op">(</span><span class="va">fit</span>, h <span class="op">=</span> <span class="fl">48</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="MAD_m40-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>

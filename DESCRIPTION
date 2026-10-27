@@ -1,7 +1,7 @@
 Package: msarima
-Title: Multi-Seasonal ARIMA Model
-Version: 0.0.0.9006
-Authors@R: 
+Title: Multi-Seasonal ARIMA Models
+Version: 0.1.0
+Authors@R:
     c(person(given = "Daniele",
              family = "Girolimetto",
              role = c("aut", "cre", "cph"),
@@ -14,23 +14,27 @@ Authors@R:
              comment = c(ORCID = "0000-0002-8749-8889")),
       person(given = "Matteo",
              family = "Grigoletto",
-             role = c("aut")))
+             role = c("aut"),
+             email = "matteo.grigoletto@unipd.it",
+             comment = c(ORCID = "0000-0001-9881-2039")))
 Description: Fit, forecast and simulate autoregressive integrated moving
     average (ARIMA) models with more than one seasonal component, following
     Lisi and Grigoletto (2025) <doi:10.1002/for.3283>. Series observed at high
     frequency often display several seasonal cycles at once, such as the daily
     and the weekly pattern of hourly data, which a single seasonal ARIMA
-    operator cannot represent. Estimation is by conditional maximum likelihood
-    through numerical optimisation, with support for fixed coefficients and a
-    constant term. Seasonal correlograms, forecasts with prediction intervals,
-    and simulation from a model specification or from a fitted model are also
-    provided.
+    operator cannot represent. Estimation is performed by conditional maximum
+    likelihood through numerical optimisation, with support for fixed
+    coefficients and a constant term. Multi-seasonal Ljung-Box and Monti
+    portmanteau tests, following Grigoletto and Lisi (2026)
+    <doi:10.48550/arXiv.2609.32381>, seasonal correlograms, forecasts with
+    prediction intervals, and simulation from a model specification or from a
+    fitted model are also provided.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-Depends: 
-    R (>= 3.5),
+Depends:
+    R (>= 4.1.0),
     forecast
 Imports:
     polynom,

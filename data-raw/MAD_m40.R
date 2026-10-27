@@ -27,7 +27,12 @@ stopifnot(
 hourly <- colSums(matrix(raw$volume, nrow = 2))
 stopifnot(length(hourly) == nrow(raw) / 2)
 
-## 2024-02-01 is a Thursday, so observation 1 is the first hour of a Thursday
+## 2024-02-01 is a Thursday, so hour 49 is midnight of Saturday 3 February.
+## Keep the eight complete weeks from 3 February to 29 March 2024 studied by
+## Grigoletto and Lisi (2026): 1344 = 8 * 168 hourly observations.
+hourly <- hourly[49:1392]
+stopifnot(length(hourly) == 8 * 168)
+
 MAD_m40 <- forecast::msts(hourly, seasonal.periods = c(24, 168))
 
 usethis::use_data(MAD_m40, overwrite = TRUE)

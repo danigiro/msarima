@@ -86,6 +86,11 @@ sacf(MAD_m40, lag.max = 200)   # periods 24 and 168 taken from the msts object
 spacf(fit)                     # residual pacf, periods taken from the model
 
 }
+\references{
+Okabe, M. and Ito, K. (2008). Color Universal Design (CUD): How to make figures
+and presentations that are friendly to colorblind people.
+\url{https://jfly.uni-koeln.de/color/}
+}
 \seealso{
 \link[stats:acf]{stats::acf}, \link{msarima}
 }

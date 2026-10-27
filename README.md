@@ -9,17 +9,17 @@
 [![CRAN
 status](https://www.r-pkg.org/badges/version/msarima)](https://CRAN.R-project.org/package=msarima)
 [![devel
-version](https://img.shields.io/badge/devel%20version-0.0.0.9006-blue.svg)](https://github.com/danigiro/msarima)
+version](https://img.shields.io/badge/devel%20version-0.1.0-blue.svg)](https://github.com/danigiro/msarima)
 [![License:
 GPL-3](https://img.shields.io/badge/license-GPL--3-forestgreen.svg)](https://cran.r-project.org/web/licenses/GPL-3)
 <!-- badges: end -->
 
-msarima fits ARIMA models with **more than one seasonal component**.
-Series observed at high frequency often carry several cycles at once,
-such as the daily *and* the weekly pattern of hourly data, while
-`stats::arima()` can only take one of them. The package gives each
-period its own autoregressive, differencing and moving average operator,
-estimated by conditional maximum likelihood.
+The `msarima` package fits ARIMA models with **more than one seasonal
+component**. Series observed at high frequency often carry several
+cycles at once, such as the daily *and* the weekly pattern of hourly
+data, while `stats::arima()` can only take one of them. The package
+gives each period its own autoregressive, differencing and moving
+average operator, estimated by conditional maximum likelihood.
 
 - `msarima()` fits the model, with support for fixed coefficients and a
   constant term.
@@ -28,8 +28,20 @@ estimated by conditional maximum likelihood.
   a fit.
 - `sacf()` and `spacf()` draw correlograms that mark the lags of each
   cycle (`ggsacf()` and `ggspacf()` for the `ggplot2` versions).
+- `msportmanteau()` runs the multi-seasonal Ljung-Box and Monti
+  portmanteau tests on a series or on the residuals of a fit.
 
 ## Installation
+
+You can install the stable version from
+[CRAN](https://CRAN.R-project.org/package=msarima):
+
+``` r
+install.packages("msarima")
+```
+
+You can install the development version from
+[GitHub](https://github.com/danigiro/msarima):
 
 ``` r
 # install.packages("devtools")
@@ -39,9 +51,9 @@ devtools::install_github("danigiro/msarima")
 ## Usage
 
 `MAD_m40` is the hourly number of vehicles recorded by a sensor on the
-M-40 ring road of Madrid between February and May 2024. It is an `msts`
-object with periods 24 and 168, so the periods do not have to be
-repeated in every call.
+M-40 ring road of Madrid over the eight weeks from 3 February to 29
+March 2024. It is an `msts` object with periods 24 and 168, so the
+periods do not have to be repeated in every call.
 
 ``` r
 library(msarima)
@@ -62,14 +74,14 @@ fit <- msarima(MAD_m40,
                seasonal = list(c(0, 1, 1), c(0, 1, 1)))
 fit
 #> Series: MAD_m40 
-#> MSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]
+#> mSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]
 #> 
 #> Coefficients:
 #>    AR(1)    MA(1)    MA(2) SMA(1,1) SMA(2,1) 
-#>   0.8235  -0.0849  -0.0629  -0.7518  -0.8184 
+#>   0.8847  -0.3737  -0.0906  -0.5603  -0.6836 
 #> 
-#> sigma^2 = 5105.4386  log likelihood = -12933.63
-#> AIC = 25879.25   AICc = 25879.28   BIC = 25914.69
+#> sigma^2 = 4009.7288  log likelihood = -5356.48
+#> AIC = 10724.97   AICc = 10725.04   BIC = 10755.26
 ```
 
 `summary()` adds standard errors and significance tests:
@@ -77,20 +89,20 @@ fit
 ``` r
 summary(fit)
 #> Series: MAD_m40 
-#> MSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]
+#> mSARIMA(1,0,2)(0,1,1)[24](0,1,1)[168]
 #> 
 #> Coefficients:
 #>          Estimate Std. Error z value Pr(>|z|)    
-#> AR(1)     0.82355    0.02055  40.082  < 2e-16 ***
-#> MA(1)    -0.08489    0.03043  -2.790  0.00527 ** 
-#> MA(2)    -0.06288    0.02893  -2.173  0.02976 *  
-#> SMA(1,1) -0.75184    0.01762 -42.681  < 2e-16 ***
-#> SMA(2,1) -0.81843    0.01107 -73.901  < 2e-16 ***
+#> AR(1)     0.88473    0.02473  35.770   <2e-16 ***
+#> MA(1)    -0.37373    0.04060  -9.204   <2e-16 ***
+#> MA(2)    -0.09059    0.03805  -2.381   0.0173 *  
+#> SMA(1,1) -0.56029    0.02700 -20.748   <2e-16 ***
+#> SMA(2,1) -0.68362    0.02525 -27.072   <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> sigma^2 = 5105.4386  log likelihood = -12933.6262
-#> AIC = 25879.2524   AICc = 25879.2834   BIC = 25914.6850
+#> sigma^2 = 4009.7288  log likelihood = -5356.4828
+#> AIC = 10724.9656   AICc = 10725.0390   BIC = 10755.2612
 ```
 
 ### Forecasting
@@ -128,7 +140,7 @@ fit_fixed <- msarima(MAD_m40,
                      fixed = c(NA, NA, NA, -0.6, NA, NA))
 c(free = AIC(fit), fixed = AIC(fit_fixed))
 #>     free    fixed 
-#> 25879.25 25930.09
+#> 10724.97 10725.21
 ```
 
 ## Learn more
@@ -136,8 +148,12 @@ c(free = AIC(fit), fixed = AIC(fit_fixed))
 `vignette("msarima")` walks through the package on `MAD_m40`, from the
 correlograms to model choice and forecast evaluation.
 
-## Reference
+## References
 
 Lisi, F. and Grigoletto, M. (2025). Multiple seasonal autoregressive
 integrated moving average models. *Journal of Forecasting*, **44**(6),
 2037-2052. <https://doi.org/10.1002/for.3283>
+
+Grigoletto, M. and Lisi, F. (2026). Portmanteau goodness-of-fit tests in
+the presence of simple, mixed, and multiple seasonal autocorrelation.
+*arXiv*. <https://doi.org/10.48550/arXiv.2609.32381>

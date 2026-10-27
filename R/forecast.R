@@ -31,7 +31,7 @@
 #' taken from the fitted model, so the forecasts are on the scale of the original
 #' series.
 #'
-#' Prediction intervals assume normally distributed innovations. The forecast variance
+#' Prediction intervals assume Gaussian innovations. The forecast variance
 #' \eqn{V_h} is obtained from the MA(\eqn{\infty}) representation of the model.
 #'
 #' @examples
@@ -97,51 +97,9 @@ forecast.msarima <- function(
     mu <- 0
   }
 
-  # Build AR polynomial
-  if (n_ar > 0) {
-    ar_comp <- rep(S_vec, order_mat[, 1])
-    ar_beta <- tapply(ar_coefs, ar_comp, function(x) x, simplify = FALSE)
+  poly_ar <- build_lag_poly(ar_coefs, order_mat[, 1], S_vec, -1)
+  poly_ma <- build_lag_poly(ma_coefs, order_mat[, 3], S_vec, +1)
 
-    poly_ar <- do.call(
-      prod,
-      mapply(
-        function(x, y) {
-          seq_par <- rep(0, length(y) * x)
-          seq_par[cumsum(rep(x, length(y)))] <- y
-          polynomial(c(1, -seq_par))
-        },
-        x = unique(ar_comp),
-        y = ar_beta,
-        SIMPLIFY = FALSE
-      )
-    )
-  } else {
-    poly_ar <- polynomial(1)
-  }
-
-  # Build MA polynomial
-  if (n_ma > 0) {
-    ma_comp <- rep(S_vec, order_mat[, 3])
-    ma_beta <- tapply(ma_coefs, ma_comp, function(x) x, simplify = FALSE)
-
-    poly_ma <- do.call(
-      prod,
-      mapply(
-        function(x, y) {
-          seq_par <- rep(0, length(y) * x)
-          seq_par[cumsum(rep(x, length(y)))] <- y
-          polynomial(c(1, seq_par))
-        },
-        x = unique(ma_comp),
-        y = ma_beta,
-        SIMPLIFY = FALSE
-      )
-    )
-  } else {
-    poly_ma <- polynomial(1)
-  }
-
-  # Build integration polynomial
   if (sum(order_mat[, 2]) > 0) {
     poly_i <- do.call(
       prod,
@@ -231,7 +189,7 @@ forecast.msarima <- function(
   # g(B) = 1/Delta(B): g_0..g_{h-1}
   g <- numeric(h)
   g[1] <- 1
-  if (m > 0) {
+  if (m > 0 && h > 1) {
     for (n in 2:h) {
       i_max <- min(m, n - 1)
       g[n] <- -sum(delta[2:(i_max + 1)] * g[(n - 1):(n - i_max)])
@@ -261,9 +219,9 @@ forecast.msarima <- function(
       method = object$method,
       model = object,
       level = level,
-      mean = future_msts(object$x, fcast),
-      lower = future_msts(object$x, lower),
-      upper = future_msts(object$x, upper),
+      mean = ahead_ts(object$x, fcast),
+      lower = ahead_ts(object$x, lower),
+      upper = ahead_ts(object$x, upper),
       x = object$x,
       series = object$series,
       fitted = object$fitted,
@@ -273,51 +231,4 @@ forecast.msarima <- function(
   )
 
   return(out)
-}
-
-# Copy msts attributes from x to y shifted to forecast period
-# Version from the forecast package:
-# https://github.com/robjhyndman/forecast/blob/29754e2e8044c7b357a0cae321ff34df24ec9386/R/msts.R#L116
-future_msts <- function(x, y) {
-  if (NCOL(y) > 1) {
-    class(y) <- c("mts", "ts", "matrix")
-  } else {
-    class(y) <- "ts"
-  }
-  if (inherits(x, "msts")) {
-    class(y) <- c("msts", class(y))
-  }
-  attr <- attributes(x)
-  attr$tsp[1:2] <- attr$tsp[2] + c(1, NROW(y)) / attr$tsp[3]
-  attributes(y)$tsp <- attr$tsp
-  attributes(y)$msts <- attr$msts
-  y
-}
-
-# Copy msts attributes from x to y
-# Version from the forecast package:
-# https://github.com/robjhyndman/forecast/blob/29754e2e8044c7b357a0cae321ff34df24ec9386/R/msts.R#L90
-copy_msts <- function(x, y) {
-  if (NROW(x) > NROW(y)) {
-    # Pad y with initial NAs
-    if (NCOL(y) == 1) {
-      y <- c(rep(NA, NROW(x) - NROW(y)), y)
-    } else {
-      y <- rbind(matrix(NA, ncol = NCOL(y), nrow = NROW(x) - NROW(y)), y)
-    }
-  } else if (NROW(x) != NROW(y)) {
-    stop("x and y should have the same number of observations")
-  }
-  if (NCOL(y) > 1) {
-    class(y) <- c("mts", "ts", "matrix")
-  } else {
-    class(y) <- "ts"
-  }
-  if (inherits(x, "msts")) {
-    class(y) <- c("msts", class(y))
-  }
-  attr <- attributes(x)
-  attributes(y)$tsp <- attr$tsp
-  attributes(y)$msts <- attr$msts
-  y
 }

@@ -29,7 +29,8 @@ order (D), and the seasonal MA order (Q) of one component. Use \code{list()} for
 model without seasonal components. Default is \code{list()}.}
 
 \item{seasonal.period}{A numeric vector of seasonal periods, one for each element of
-\code{seasonal}. Default is \code{NULL}.}
+\code{seasonal}. Periods can be given in any order but must be distinct.
+Default is \code{NULL}.}
 
 \item{ar}{Numeric vector of AR coefficients, non-seasonal first and then one block per
 seasonal component. Its length must match the total AR order implied by \code{order}

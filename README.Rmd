@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 [![License: GPL-3](https://img.shields.io/badge/license-GPL--3-forestgreen.svg)](https://cran.r-project.org/web/licenses/GPL-3)
 <!-- badges: end -->
 
-msarima fits ARIMA models with **more than one seasonal component**. Series
+The `msarima` package fits ARIMA models with **more than one seasonal component**. Series
 observed at high frequency often carry several cycles at once, such as the daily
 *and* the weekly pattern of hourly data, while `stats::arima()` can only take one
 of them. The package gives each period its own autoregressive, differencing and
@@ -33,8 +33,18 @@ moving average operator, estimated by conditional maximum likelihood.
 * `msarima.sim()` and `simulate()` simulate from a specification or from a fit.
 * `sacf()` and `spacf()` draw correlograms that mark the lags of each cycle
   (`ggsacf()` and `ggspacf()` for the `ggplot2` versions).
+* `msportmanteau()` runs the multi-seasonal Ljung-Box and Monti portmanteau tests
+  on a series or on the residuals of a fit.
 
 ## Installation
+
+You can install the stable version from [CRAN](https://CRAN.R-project.org/package=msarima):
+
+``` r
+install.packages("msarima")
+```
+
+You can install the development version from [GitHub](https://github.com/danigiro/msarima):
 
 ``` r
 # install.packages("devtools")
@@ -44,8 +54,9 @@ devtools::install_github("danigiro/msarima")
 ## Usage
 
 `MAD_m40` is the hourly number of vehicles recorded by a sensor on the M-40 ring
-road of Madrid between February and May 2024. It is an `msts` object with periods
-24 and 168, so the periods do not have to be repeated in every call.
+road of Madrid over the eight weeks from 3 February to 29 March 2024. It is an
+`msts` object with periods 24 and 168, so the periods do not have to be repeated
+in every call.
 
 ```{r data, fig.height = 3.5, fig.width = 9, message = FALSE, warning = FALSE}
 library(msarima)
@@ -109,8 +120,12 @@ c(free = AIC(fit), fixed = AIC(fit_fixed))
 `vignette("msarima")` walks through the package on `MAD_m40`, from the
 correlograms to model choice and forecast evaluation.
 
-## Reference
+## References
 
 Lisi, F. and Grigoletto, M. (2025). Multiple seasonal autoregressive integrated
 moving average models. *Journal of Forecasting*, **44**(6), 2037-2052.
 <https://doi.org/10.1002/for.3283>
+
+Grigoletto, M. and Lisi, F. (2026). Portmanteau goodness-of-fit tests in the
+presence of simple, mixed, and multiple seasonal autocorrelation. *arXiv*.
+<https://doi.org/10.48550/arXiv.2609.32381>

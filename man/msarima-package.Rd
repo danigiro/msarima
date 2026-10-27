@@ -3,16 +3,15 @@
 \docType{package}
 \name{msarima-package}
 \alias{msarima-package}
-\title{msarima: Multi-Seasonal ARIMA Model}
+\title{msarima: Multi-Seasonal ARIMA Models}
 \description{
-\if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
-
-Fit, forecast and simulate autoregressive integrated moving average (ARIMA) models with more than one seasonal component, following Lisi and Grigoletto (2025) \doi{10.1002/for.3283}. Series observed at high frequency often display several seasonal cycles at once, such as the daily and the weekly pattern of hourly data, which a single seasonal ARIMA operator cannot represent. Estimation is by conditional maximum likelihood through numerical optimisation, with support for fixed coefficients and a constant term. Seasonal correlograms, forecasts with prediction intervals, and simulation from a model specification or from a fitted model are also provided.
+Fit, forecast and simulate autoregressive integrated moving average (ARIMA) models with more than one seasonal component, following Lisi and Grigoletto (2025) \doi{10.1002/for.3283}. Series observed at high frequency often display several seasonal cycles at once, such as the daily and the weekly pattern of hourly data, which a single seasonal ARIMA operator cannot represent. Estimation is performed by conditional maximum likelihood through numerical optimisation, with support for fixed coefficients and a constant term. Multi-seasonal Ljung-Box and Monti portmanteau tests, following Grigoletto and Lisi (2026) \doi{10.48550/arXiv.2609.32381}, seasonal correlograms, forecasts with prediction intervals, and simulation from a model specification or from a fitted model are also provided.
 }
 \seealso{
 Useful links:
 \itemize{
   \item \url{https://github.com/danigiro/msarima}
+  \item \url{https://danigiro.github.io/msarima}
   \item Report bugs at \url{https://github.com/danigiro/msarima/issues}
 }
 
@@ -23,7 +22,7 @@ Useful links:
 Authors:
 \itemize{
   \item Francesco Lisi \email{francesco.lisi@unipd.it} (\href{https://orcid.org/0000-0002-8749-8889}{ORCID})
-  \item Matteo Grigoletto
+  \item Matteo Grigoletto \email{matteo.grigoletto@unipd.it} (\href{https://orcid.org/0000-0001-9881-2039}{ORCID})
 }
 
 }

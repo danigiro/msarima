@@ -17,11 +17,13 @@
   [`BIC(`*`<msarima>`*`)`](https://danigiro.github.io/msarima/reference/msarima-methods.md)
   : Methods for msarima Objects
 - [`msarima-package`](https://danigiro.github.io/msarima/reference/msarima-package.md)
-  : msarima: Multi-Seasonal ARIMA Model
+  : msarima: Multi-Seasonal ARIMA Models
 - [`msarima()`](https://danigiro.github.io/msarima/reference/msarima.md)
   : Fit a Multi-Seasonal ARIMA Model
 - [`msarima.sim()`](https://danigiro.github.io/msarima/reference/msarima.sim.md)
   : Simulate from a Multi-Seasonal ARIMA Model (Direct Interface)
+- [`msportmanteau()`](https://danigiro.github.io/msarima/reference/msportmanteau.md)
+  : Multi-Seasonal Portmanteau Tests
 - [`sacf()`](https://danigiro.github.io/msarima/reference/sacf.md)
   [`spacf()`](https://danigiro.github.io/msarima/reference/sacf.md)
   [`ggsacf()`](https://danigiro.github.io/msarima/reference/sacf.md)

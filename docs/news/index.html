@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">msarima</a>
 
-    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.0.9006</small>
+    <small class="nav-text text-light me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,19 +38,8 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.0.0.9006" id="msarima-0009006">msarima 0.0.0.9006<a class="anchor" aria-label="anchor" href="#msarima-0009006"></a></h2>
-<ul><li><p>New <code><a href="../reference/sacf.html">sacf()</a></code> and <code><a href="../reference/sacf.html">spacf()</a></code>, autocorrelation and partial autocorrelation plots that highlight the lags of each seasonal cycle, with the periods taken from an <code>msts</code> object or from a fitted model. <code><a href="../reference/sacf.html">ggsacf()</a></code> and <code><a href="../reference/sacf.html">ggspacf()</a></code> are the ggplot2 versions.</p></li>
-<li><p>New vignette <code>msarima</code>, a walk-through of the package on <code>MAD_m40</code>.</p></li>
-<li><p>New dataset <code>MAD_m40</code>: hourly traffic volume on the M-40 ring road of Madrid, February to May 2024, as an <code>msts</code> object with seasonal periods 24 and 168.</p></li>
-<li><p>Fixed estimation of models with differencing in <code><a href="../reference/msarima.html">msarima()</a></code>. The differencing operator was folded into the AR polynomial and the conditional sum of squares was computed on the undifferenced series, padded with a constant. The first <code>d + sum(D * S)</code> residuals were therefore start-up transient (they entered the likelihood and biased the estimates), and <code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals()</a></code> had the same length as the input series. The series is now differenced before estimation, so fitting <code>msarima(x, order = c(p, 0, q), seasonal = list(c(0, 1, 1)))</code> gives exactly the same coefficients and residuals as fitting the same ARMA on <code>diff(x, S)</code>. <code><a href="https://rdrr.io/r/stats/residuals.html" class="external-link">residuals()</a></code> and <code><a href="https://rdrr.io/r/stats/fitted.values.html" class="external-link">fitted()</a></code> are now <code>NA</code> for the first <code>d + sum(D * S)</code> observations (fitted values remain on the scale of the original series).</p></li>
-<li><p><code><a href="../reference/forecast.msarima.html">forecast.msarima()</a></code> and <code><a href="../reference/simulate.msarima.html">simulate.msarima()</a></code> now use the <code>intercept</code> term of models fitted with <code>include.constant = TRUE</code>. It was estimated but never read, so point forecasts decayed to 0 instead of to the mean of the process, and simulated series were centred on 0.</p></li>
-<li><p>Fixed seasonal AR/MA polynomial construction in <code><a href="../reference/forecast.msarima.html">forecast.msarima()</a></code> (seasonal orders &gt;= 2 placed the coefficients at lags <code>S, S+1, ...</code> instead of <code>S, 2S, ...</code>) and seasonal differencing for <code>D &gt;= 2</code>. The same fix had already been applied to <code><a href="../reference/msarima.html">msarima()</a></code> and <code><a href="../reference/msarima.sim.html">msarima.sim()</a></code>.</p></li>
-<li><p>New <code>intercept</code> argument in <code><a href="../reference/msarima.sim.html">msarima.sim()</a></code>.</p></li>
-<li><p>Fixed but to order greater then 1 in <code><a href="../reference/msarima.html">msarima()</a></code></p></li>
-<li><p>Fixed bug to extract the hessian in <code><a href="../reference/msarima.html">msarima()</a></code></p></li>
-<li><p>Fixed seasonal AR/MA polynomial construction in <code><a href="../reference/msarima.html">msarima()</a></code> and <code><a href="../reference/msarima.sim.html">msarima.sim()</a></code> for seasonal orders &gt;= 2.</p></li>
-<li><p>Fixed seasonal AR/MA polynomial construction (and seasonal differencing for D &gt;= 2) in <code><a href="../reference/msarima.html">msarima()</a></code> and <code><a href="../reference/msarima.sim.html">msarima.sim()</a></code>.</p></li>
-<li><p>Initial CRAN submission.</p></li>
+<h2 class="pkg-version" data-toc-text="0.1.0" id="msarima-010">msarima 0.1.0<a class="anchor" aria-label="anchor" href="#msarima-010"></a></h2>
+<ul><li>Initial CRAN submission.</li>
 </ul></div>
   </main></div>
 

@@ -81,8 +81,6 @@ test_that("msarima.sim places the series at the level implied by intercept", {
 })
 
 test_that("simulate.msarima reproduces the level of the fitted model", {
-  # Regression test: simulate.msarima() read only the AR and MA coefficients,
-  # so simulated series were centred on 0 whatever the fitted intercept.
   set.seed(13)
   y <- 100 + as.numeric(msarima.sim(
     nsim = 300,

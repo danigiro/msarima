@@ -23,13 +23,15 @@ The `msarima` package fits the multiple seasonal model of Lisi and Grigoletto
 (2025),
 
 $$
-\phi(B)\,\Phi_1(B^{S_1})\cdots\Phi_k(B^{S_k})\,
-\nabla^d \nabla_{S_1}^{D_1}\cdots\nabla_{S_k}^{D_k}\, y_t =
-\theta(B)\,\Theta_1(B^{S_1})\cdots\Theta_k(B^{S_k})\, e_t ,
+\phi(B)\,\prod_{j=1}^{k}\Phi_j\!\left(B^{S_j}\right)\,
+(1-B)^{d}\prod_{j=1}^{k}\left(1-B^{S_j}\right)^{D_j} y_t
+=
+\mu + \theta(B)\,\prod_{j=1}^{k}\Theta_j\!\left(B^{S_j}\right) e_t ,
 $$
 
-with one autoregressive, differencing and moving average operator for each seasonal
-period $S_1, \dots, S_k$.
+where $e_t$ is white noise with variance $\sigma^2$ and $\mu$ is a constant, with one
+autoregressive, differencing and moving average operator for each seasonal period
+$S_1, \dots, S_k$.
 
 ```{r setup, message = FALSE, warning = FALSE}
 library(msarima)
@@ -38,9 +40,9 @@ library(msarima)
 ## The data
 
 `MAD_m40` is the hourly number of vehicles recorded by a sensor on the M-40 ring
-road of Madrid between February and May 2024. It is an `msts` object with seasonal
-periods 24 and 168 (2904 observations in all), so those periods do not have to be
-repeated in every call.
+road of Madrid over the eight weeks from 3 February to 29 March 2024. It is an
+`msts` object with seasonal periods 24 and 168 (1344 observations in all), so
+those periods do not have to be repeated in every call.
 
 ```{r data, fig.alt = "Line chart of vehicles per hour over the first four weeks. A daily cycle of two peaks and a night trough repeats, with lower peaks on the last two days of every week."}
 head(MAD_m40, 12)
@@ -126,6 +128,17 @@ model has failed to capture:
 sacf(fit, lag.max = 200, main = "Residuals")
 ```
 
+`msportmanteau()` turns this visual check into a formal test, using the
+multi-seasonal portmanteau statistics of Grigoletto and Lisi (2026). With the
+first 8 lags and 5 multiples of each period, 18 lags are tested, leaving 13
+degrees of freedom after the 5 estimated coefficients. Neither the Ljung-Box
+nor the Monti version rejects the absence of residual autocorrelation:
+
+```{r portm}
+msportmanteau(fit, nlag = 5, lags_short = 8)
+msportmanteau(fit, type = "Monti", nlag = 5, lags_short = 8)
+```
+
 ## Forecasting
 
 `forecast()` returns an object of the usual class of the **forecast** package, so it
@@ -162,4 +175,8 @@ y_sim <- simulate(fit, nsim = 168, seed = 1)
 
 Lisi, F. and Grigoletto, M. (2025). Multiple seasonal autoregressive integrated
 moving average models. *Journal of Forecasting*, **44**(6), 2037--2052.
-\doi{10.1002/for.3283}
+<https://doi.org/10.1002/for.3283>
+
+Grigoletto, M. and Lisi, F. (2026). Portmanteau goodness-of-fit tests in the
+presence of simple, mixed, and multiple seasonal autocorrelation. *arXiv*.
+<https://doi.org/10.48550/arXiv.2609.32381>

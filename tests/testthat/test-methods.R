@@ -7,7 +7,7 @@ test_that("print and summary work and return their input invisibly", {
     seasonal.period = 4
   )
 
-  expect_output(print(fit), "MSARIMA\\(1,0,1\\)\\(0,0,1\\)\\[4\\]")
+  expect_output(print(fit), "mSARIMA\\(1,0,1\\)\\(0,0,1\\)\\[4\\]")
   expect_output(print(fit), "Coefficients")
   capture.output(expect_invisible(print(fit)))
 

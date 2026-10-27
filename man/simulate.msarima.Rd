@@ -4,7 +4,7 @@
 \alias{simulate.msarima}
 \title{Simulate from a Multi-Seasonal ARIMA Model}
 \usage{
-\method{simulate}{msarima}(object = NULL, nsim = 100, seed = NULL, burn = 100, ...)
+\method{simulate}{msarima}(object = NULL, nsim = 100, seed = NULL, burn = NULL, ...)
 }
 \arguments{
 \item{object}{An object of class \code{"msarima"}.}
@@ -14,7 +14,9 @@
 \item{seed}{Either \code{NULL} or an integer passed to \code{\link[base]{set.seed}}
 before simulating, to make the result reproducible. Default is \code{NULL}.}
 
-\item{burn}{Number of burn-in observations to discard. Default is 100.}
+\item{burn}{Number of burn-in observations to discard. If \code{NULL}, it is set by
+\code{\link{msarima.sim}} to \code{max(100, 2 * kk)}, where \code{kk} is the
+largest lag in the model. Default is \code{NULL}.}
 
 \item{...}{Additional arguments (currently not used).}
 }

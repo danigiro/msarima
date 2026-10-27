@@ -101,6 +101,12 @@ trailing `NA`s, such as those produced by differencing in
 dropped
 ([stats::na.contiguous](https://rdrr.io/r/stats/na.contiguous.html)).
 
+## References
+
+Okabe, M. and Ito, K. (2008). Color Universal Design (CUD): How to make
+figures and presentations that are friendly to colorblind people.
+<https://jfly.uni-koeln.de/color/>
+
 ## See also
 
 [stats::acf](https://rdrr.io/r/stats/acf.html),

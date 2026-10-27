@@ -1,10 +1,3 @@
-# Regression tests for the differencing bug: the differencing operator used to
-# be folded into the AR polynomial and the conditional sum of squares was
-# computed on the undifferenced series, padded with a constant. The first
-# d + sum(D * S) residuals were start-up transient and entered the likelihood,
-# so a model fitted with differencing did not match the same ARMA fitted on the
-# pre-differenced series.
-
 test_that("d = 1 is equivalent to fitting the ARMA on diff(y)", {
   y <- sim_int()
 
@@ -122,8 +115,6 @@ test_that("no differencing leaves residuals unpadded", {
 })
 
 test_that("the start-up transient does not dominate the residuals", {
-  # Under the old behaviour the first d + sum(D * S) residuals were pure
-  # transient and were an order of magnitude larger than the rest.
   y <- sim_sint(n = 300, s = 4)
   fit <- msarima(
     y,
