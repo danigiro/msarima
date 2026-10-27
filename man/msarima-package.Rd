@@ -11,7 +11,7 @@ Fit, forecast and simulate autoregressive integrated moving average (ARIMA) mode
 Useful links:
 \itemize{
   \item \url{https://github.com/danigiro/msarima}
-  \item \url{https://danigiro.github.io/msarima}
+  \item \url{https://danigiro.github.io/msarima/}
   \item Report bugs at \url{https://github.com/danigiro/msarima/issues}
 }
 

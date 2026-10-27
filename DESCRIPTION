@@ -46,6 +46,6 @@ Suggests:
     testthat (>= 3.0.0)
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-URL: https://github.com/danigiro/msarima, https://danigiro.github.io/msarima
+URL: https://github.com/danigiro/msarima, https://danigiro.github.io/msarima/
 BugReports: https://github.com/danigiro/msarima/issues
 LazyData: true
