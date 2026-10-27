@@ -7,3 +7,4 @@
 **/*.quarto_ipynb
 README.html
 *.Rcheck/
+.Rd2pdf*/
